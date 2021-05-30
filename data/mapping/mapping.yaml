@@ -1,0 +1,9 @@
+# Column mapping is applied to the source file to identify ID and Category Columns
+# As well applied to the final product of the script (final product feed)
+# The key represents the name of TS column
+# The value reflects the source file column name:
+#     ID-in-TS: ID-column-from-the-source
+column-mappings:
+  ID: ID
+  Category: Category
+  Name: Name

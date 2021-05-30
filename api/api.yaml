@@ -1,0 +1,47 @@
+openapi: 3.0.0
+info:
+  version: 1.0.0
+  title: ts validator
+  description: ts validator API
+  termsOfService: 'http://swagger.io/terms/'
+  contact:
+    name: Evgenia Grubbi
+    email: egrubbi@setronica.com
+  license:
+    name: Apache 2.0
+    url: 'https://www.apache.org/licenses/LICENSE-2.0.html'
+tags:
+  - name: configuration
+  - name: actions
+servers:
+  - url: '/api'
+paths:
+  /health:
+    get:
+      description: gets the health of the service
+      operationId: getHealth
+      responses:
+        '204':
+          description: success response
+        default:
+          $ref: '#/components/responses/defaultError'
+components:
+  requestBodies:
+  responses:
+    defaultError:
+      description: unexpected error
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/error'
+  schemas:
+    error:
+      type: object
+      required:
+        - code
+        - message
+      properties:
+        code:
+          type: integer
+        message:
+          type: string

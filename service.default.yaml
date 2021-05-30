@@ -1,0 +1,21 @@
+port: 8085
+debug: false
+
+catalog:
+  source: ./data/source/
+  report: ./data/result/report
+  sent: ./data/source/processed
+  in_progress: ./data/source/inprogress
+  success_result: ./data/result/sent
+  fail_result: ./data/result/report
+  mapping: ./data/mapping/mapping.yaml
+  ontology: ./data/ontology/rules.csv
+
+tradeshift_api:
+  # set Tradeshift API parameters from API Access To Own Account in Tradeshift pannel
+  base_url:
+  consumer_key:
+  consumer_secret:
+  token:
+  token_secret:
+  tenant_id:
