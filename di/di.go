@@ -8,6 +8,7 @@ import (
 	"ts/externalAPI/rest"
 	"ts/externalAPI/tradeshiftAPI"
 	"ts/mapping"
+	"ts/offerImport/offerReader"
 	"ts/ontology"
 	"ts/ontologyValidator"
 	"ts/reports"
@@ -30,6 +31,7 @@ var diConfig = []entry{
 	{constructor: adapters.NewFileManager},
 	{constructor: adapters.NewHandler},
 	{constructor: ontology.NewRulesHandler},
+	{constructor: offerReader.NewOfferReader},
 	{constructor: ontologyValidator.NewValidator},
 	{constructor: reports.NewReportsHandler},
 	{constructor: rest.NewRestClient},
