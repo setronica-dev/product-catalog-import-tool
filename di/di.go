@@ -7,12 +7,14 @@ import (
 	"ts/config"
 	"ts/externalAPI/rest"
 	"ts/externalAPI/tradeshiftAPI"
+	"ts/offerImport/importHandler"
 	"ts/offerImport/offerReader"
 	"ts/productImport"
 	"ts/productImport/mapping"
 	"ts/productImport/ontologyRead"
 	"ts/productImport/ontologyValidator"
 	"ts/productImport/reports"
+	"ts/productImport/tradeshiftImportHandler"
 )
 
 type options = []dig.ProvideOption
@@ -33,8 +35,9 @@ var diConfig = []entry{
 	{constructor: reports.NewReportsHandler},
 	{constructor: rest.NewRestClient},
 	{constructor: tradeshiftAPI.NewTradeshiftAPI},
-	{constructor: tradeshiftAPI.NewTradeshiftHandler},
+	{constructor: tradeshiftImportHandler.NewTradeshiftHandler},
 	{constructor: productImport.NewProductImportHandler},
+	{constructor: importHandler.NewImportOfferHandler},
 }
 
 func BuildContainer() *dig.Container {

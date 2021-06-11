@@ -1,4 +1,4 @@
-package tradeshiftAPI
+package tradeshiftImportHandler
 
 import (
 	"fmt"
@@ -7,10 +7,11 @@ import (
 	"time"
 	"ts/adapters"
 	"ts/config"
+	"ts/externalAPI/tradeshiftAPI"
 )
 
 type TradeshiftHandler struct {
-	transport   *TradeshiftAPI
+	transport   *tradeshiftAPI.TradeshiftAPI
 	filemanager *adapters.FileManager
 	handler     adapters.HandlerInterface
 }
@@ -27,7 +28,7 @@ const (
 type DepsH struct {
 	dig.In
 	Config        *config.Config
-	TradeshiftAPI *TradeshiftAPI
+	TradeshiftAPI *tradeshiftAPI.TradeshiftAPI
 	FileManager   *adapters.FileManager
 	FilesHandler  adapters.HandlerInterface
 }

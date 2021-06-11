@@ -15,7 +15,7 @@ const (
 )
 
 type RawHeader struct {
-	OfferID    string
+	Offer      string
 	Receiver   string
 	ContractID string
 	ValidFrom  string
@@ -30,7 +30,7 @@ func NewHeader(input []string) *RawHeader {
 		trimmedColumnLabel := utils.TrimAll(columnLabel)
 		switch trimmedColumnLabel {
 		case utils.TrimAll(defaultOfferID):
-			newHeader.OfferID = columnLabel
+			newHeader.Offer = columnLabel
 		case utils.TrimAll(defaultReceiver):
 			newHeader.Receiver = columnLabel
 		//unrequired
@@ -48,8 +48,8 @@ func NewHeader(input []string) *RawHeader {
 }
 
 func (rh *RawHeader) ValidateHeader() error {
-	if rh.OfferID == "" || rh.Receiver == "" {
-		return fmt.Errorf("offers file does not contains all requiered fields: actual [OfferID: %v, Receiver: %v]", rh.OfferID, rh.Receiver)
+	if rh.Offer == "" || rh.Receiver == "" {
+		return fmt.Errorf("offers file does not contains all requiered fields: actual [Offer: %v, Receiver: %v]", rh.Offer, rh.Receiver)
 	}
 	return nil
 }

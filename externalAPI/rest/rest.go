@@ -30,7 +30,7 @@ type Auth struct {
 	TokenSecret    string
 }
 
-type UrlAttributes struct {
+type UrlParam struct {
 	Key   string
 	Value string
 }
@@ -55,13 +55,13 @@ func NewRestClient(deps Deps) RestClientInterface {
 	return &c
 }
 
-func (c *APIClient) Post(method string, body map[string]interface{}, params []UrlAttributes) (*http.Response, error) {
+func (c *APIClient) Post(method string, body io.Reader, params []UrlParam) (*http.Response, error) {
 	contentType := "application/json"
 	req := c.buildRequest(
 		http.MethodPost,
 		c.buildUrl(method, params),
-		c.buildBody(body),
-		c.buildParams(params))
+		body,
+		buildParams(params))
 	req.Header.Set("Content-Type", contentType)
 
 	resp, err := c.executeRequest(req)
@@ -95,8 +95,12 @@ func (c *APIClient) PostFile(method string, filePath string) (*http.Response, er
 	return res, err
 }
 
-func (c *APIClient) Get(method string) (*http.Response, error) {
-	req := c.buildRequest(http.MethodGet, c.buildUrl(method, nil), nil, nil)
+func (c *APIClient) Get(method string, params []UrlParam) (*http.Response, error) {
+	req := c.buildRequest(
+		http.MethodGet,
+		c.buildUrl(method, params),
+		nil,
+		buildParams(params))
 	resp, err := c.executeRequest(req)
 	return resp, err
 }
@@ -114,12 +118,12 @@ func (c *APIClient) buildRequest(method string, path string, body io.Reader, par
 	return req
 }
 
-func (c *APIClient) buildBody(data map[string]interface{}) io.Reader {
+func BuildBody(data map[string]interface{}) io.Reader {
 	body, _ := json.Marshal(&data)
 	return bytes.NewReader(body)
 }
 
-func (c *APIClient) buildUrl(method string, params []UrlAttributes) string {
+func (c *APIClient) buildUrl(method string, params []UrlParam) string {
 	endpoint := fmt.Sprintf("%v%v", c.BaseURL, method)
 	u, _ := url.Parse(endpoint)
 	q := u.Query()
@@ -130,7 +134,7 @@ func (c *APIClient) buildUrl(method string, params []UrlAttributes) string {
 	return u.String()
 }
 
-func (c *APIClient) buildParams(params []UrlAttributes) map[string]string {
+func buildParams(params []UrlParam) map[string]string {
 	res := map[string]string{}
 
 	for _, item := range params {
