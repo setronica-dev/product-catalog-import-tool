@@ -13,7 +13,7 @@ type OfferReader struct {
 }
 
 type RawOffer struct {
-	OfferID   string
+	Offer     string
 	Receiver  string
 	Contract  string
 	ValidFrom string
@@ -53,7 +53,7 @@ func processOffers(raws []map[string]interface{}, header *RawHeader) []RawOffer 
 	res := make([]RawOffer, len(raws))
 	for i, item := range raws {
 		offer := RawOffer{
-			OfferID:  fmt.Sprintf("%v", item[header.OfferID]),
+			Offer:    fmt.Sprintf("%v", item[header.Offer]),
 			Receiver: fmt.Sprintf("%v", item[header.Receiver]),
 		}
 		if header.ContractID != "" {

@@ -8,12 +8,12 @@ import (
 	"regexp"
 	"ts/adapters"
 	"ts/config"
-	"ts/externalAPI/tradeshiftAPI"
 	"ts/productImport/mapping"
 	"ts/productImport/ontologyRead"
 	"ts/productImport/ontologyRead/models"
 	"ts/productImport/ontologyValidator"
 	"ts/productImport/reports"
+	"ts/productImport/tradeshiftImportHandler"
 	"ts/utils"
 )
 
@@ -25,7 +25,7 @@ type ProductImportHandler struct {
 	validator     ontologyValidator.ValidatorInterface
 	reports       *reports.ReportsHandler
 	fileManager   *adapters.FileManager
-	importHandler *tradeshiftAPI.TradeshiftHandler
+	importHandler *tradeshiftImportHandler.TradeshiftHandler
 }
 
 type Deps struct {
@@ -37,7 +37,7 @@ type Deps struct {
 	Validator     ontologyValidator.ValidatorInterface
 	Reports       *reports.ReportsHandler
 	FileManager   *adapters.FileManager
-	ImportHandler *tradeshiftAPI.TradeshiftHandler
+	ImportHandler *tradeshiftImportHandler.TradeshiftHandler
 }
 
 func NewProductImportHandler(deps Deps) *ProductImportHandler {
@@ -182,7 +182,6 @@ func (ph *ProductImportHandler) processFeed(
 		Data:    parsedData,
 		Report:  reportData,
 	})
-
 
 	if !hasErrors {
 		log.Printf("SUCCESS: FILE IS VALID. Please check the '%s' folder", ph.config.Catalog.SentPath)
