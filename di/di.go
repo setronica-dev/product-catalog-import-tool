@@ -7,6 +7,7 @@ import (
 	"ts/config"
 	"ts/externalAPI/rest"
 	"ts/externalAPI/tradeshiftAPI"
+	"ts/offerImport"
 	"ts/offerImport/importHandler"
 	"ts/offerImport/offerReader"
 	"ts/productImport"
@@ -26,18 +27,23 @@ type entry struct {
 
 var diConfig = []entry{
 	{constructor: config.Get},
-	{constructor: mapping.NewMappingHandler},
 	{constructor: adapters.NewFileManager},
 	{constructor: adapters.NewHandler},
+
+	{constructor: mapping.NewMappingHandler},
 	{constructor: ontologyRead.NewRulesHandler},
 	{constructor: offerReader.NewOfferReader},
+
 	{constructor: ontologyValidator.NewValidator},
 	{constructor: reports.NewReportsHandler},
+
 	{constructor: rest.NewRestClient},
 	{constructor: tradeshiftAPI.NewTradeshiftAPI},
 	{constructor: tradeshiftImportHandler.NewTradeshiftHandler},
-	{constructor: productImport.NewProductImportHandler},
 	{constructor: importHandler.NewImportOfferHandler},
+
+	{constructor: productImport.NewProductImportHandler},
+	{constructor: offerImport.NewOfferImportHandler},
 }
 
 func BuildContainer() *dig.Container {

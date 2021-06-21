@@ -3,6 +3,7 @@ package importHandler
 import (
 	"go.uber.org/dig"
 	"ts/externalAPI/tradeshiftAPI"
+	"ts/offerImport/offerReader"
 )
 
 type Status int
@@ -20,5 +21,5 @@ type Deps struct {
 }
 
 type ImportOfferInterface interface {
-	ImportOffer(offerName string, buyerID string) (Status, error)
+	ImportOffers(offers []offerReader.RawOffer)
 }

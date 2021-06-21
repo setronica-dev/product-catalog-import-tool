@@ -118,7 +118,7 @@ func (c *APIClient) buildRequest(method string, path string, body io.Reader, par
 	return req
 }
 
-func BuildBody(data map[string]interface{}) io.Reader {
+func BuildBody(data interface{}) io.Reader {
 	body, _ := json.Marshal(&data)
 	return bytes.NewReader(body)
 }
@@ -149,7 +149,8 @@ func (c *APIClient) executeRequest(req *http.Request) (*http.Response, error) {
 		return nil, err
 	}
 	if resp.StatusCode != 200 {
-		return nil, fmt.Errorf("status code is %v", resp.StatusCode)
+		r, _ := ParseResponseToString(resp)
+		return nil, fmt.Errorf("status code is %v: %v", resp.StatusCode, r)
 	}
 	return resp, nil
 }
