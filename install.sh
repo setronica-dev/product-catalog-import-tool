@@ -5,15 +5,18 @@ function create_config {
 port: 8085
 debug: false
 
-catalog:
-  source: ${DIR}/data/source/
+product:
+  source: ${DIR}/data/source/products
   report: ${DIR}/data/result/report
-  sent: ${DIR}/data/source/processed
+  sent: ${DIR}/data/source/processed/products
   in_progress: ${DIR}/data/source/inprogress
   success_result: ${DIR}/data/result/sent
   fail_result: ${DIR}/data/result/report
   mapping: ${DIR}/data/mapping/mapping.yaml
   ontology: ${DIR}/data/ontology/rules.csv
+offer:
+  source: ${DIR}/data/source/offers/
+  sent: ${DIR}/data/source/processed/offers  
 
 tradeshift_api:
   # set Tradeshift API parameters from API Access To Own Account in Tradeshift pannel
