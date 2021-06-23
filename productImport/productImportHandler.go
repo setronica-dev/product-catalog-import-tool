@@ -63,7 +63,7 @@ func (ph *ProductImportHandler) Run() {
 	}
 
 	// mappings
-	columnMap := ph.mapHandler.Init(ph.config.Catalog.MappingPath)
+	columnMap := ph.mapHandler.Init(ph.config.ProductCatalog.MappingPath)
 
 	// feed
 	err = ph.processProducts(columnMap, rulesConfig)
@@ -76,8 +76,8 @@ func (ph *ProductImportHandler) processProducts(columnMap map[string]string, rul
 	// if something in progress
 
 	var processedSource []string
-	inProgress := adapters.GetFiles(ph.config.Catalog.InProgressPath)
-	sources := adapters.GetFiles(ph.config.Catalog.SourcePath)
+	inProgress := adapters.GetFiles(ph.config.ProductCatalog.InProgressPath)
+	sources := adapters.GetFiles(ph.config.ProductCatalog.SourcePath)
 	// identify fitting report
 	if len(inProgress) > 0 {
 		for _, processingFile := range inProgress {
@@ -85,8 +85,8 @@ func (ph *ProductImportHandler) processProducts(columnMap map[string]string, rul
 			if reportFile != "" {
 				processedSource = append(processedSource, reportFile)
 				ph.processFeed(
-					ph.config.Catalog.InProgressPath+"/"+processingFile, //feed
-					ph.config.Catalog.SourcePath+reportFile,             //report
+					ph.config.ProductCatalog.InProgressPath+"/"+processingFile, //feed
+					ph.config.ProductCatalog.SourcePath+reportFile,             //report
 					columnMap,
 					rulesConfig,
 					false,
@@ -95,9 +95,9 @@ func (ph *ProductImportHandler) processProducts(columnMap map[string]string, rul
 				log.Printf("You have the failed feed in progress '%v'. "+
 					"Please check the failure report in '%v', "+
 					"fill it with the data and appload to the '%v' folder.",
-					ph.config.Catalog.InProgressPath+"/"+processingFile,
-					ph.config.Catalog.FailResultPath,
-					ph.config.Catalog.SourcePath)
+					ph.config.ProductCatalog.InProgressPath+"/"+processingFile,
+					ph.config.ProductCatalog.FailResultPath,
+					ph.config.ProductCatalog.SourcePath)
 			}
 		}
 	} else if len(sources) == 0 {
@@ -107,7 +107,7 @@ func (ph *ProductImportHandler) processProducts(columnMap map[string]string, rul
 	for _, source := range sources {
 		if inArr, _ := utils.InArray(source, processedSource); !inArr {
 			ph.processFeed(
-				ph.config.Catalog.SourcePath+source,
+				ph.config.ProductCatalog.SourcePath+source,
 				"",
 				columnMap,
 				rulesConfig,
@@ -130,13 +130,13 @@ func (ph *ProductImportHandler) processFeed(
 	var er error
 	if validationReportPath != "" {
 		log.Printf("EDITED REPORT: %v", validationReportPath)
-		if validationReportPath, er = adapters.MoveToPath(validationReportPath, ph.config.Catalog.InProgressPath); er != nil {
-			log.Printf("ERROR COPYING THE '%v' FILE to the  '%v' folder", validationReportPath, ph.config.Catalog.InProgressPath)
+		if validationReportPath, er = adapters.MoveToPath(validationReportPath, ph.config.ProductCatalog.InProgressPath); er != nil {
+			log.Printf("ERROR COPYING THE '%v' FILE to the  '%v' folder", validationReportPath, ph.config.ProductCatalog.InProgressPath)
 		}
 	}
 	if isInitial {
-		if sourceFeedPath, er = adapters.MoveToPath(sourceFeedPath, ph.config.Catalog.InProgressPath); er != nil {
-			log.Printf("ERROR COPYING THE '%v' FILE to the  '%v' folder", sourceFeedPath, ph.config.Catalog.InProgressPath)
+		if sourceFeedPath, er = adapters.MoveToPath(sourceFeedPath, ph.config.ProductCatalog.InProgressPath); er != nil {
+			log.Printf("ERROR COPYING THE '%v' FILE to the  '%v' folder", sourceFeedPath, ph.config.ProductCatalog.InProgressPath)
 		}
 	}
 
@@ -184,20 +184,20 @@ func (ph *ProductImportHandler) processFeed(
 	})
 
 	if !hasErrors {
-		log.Printf("SUCCESS: FILE IS VALID. Please check the '%s' folder", ph.config.Catalog.SentPath)
-		if _, er = adapters.MoveToPath(sourceFeedPath, ph.config.Catalog.SentPath); er != nil {
-			log.Printf("ERROR COPYING THE SOURCE FILE %v to the '%v' folder", sourceFeedPath, ph.config.Catalog.SentPath)
+		log.Printf("SUCCESS: FILE IS VALID. Please check the '%s' folder", ph.config.ProductCatalog.SentPath)
+		if _, er = adapters.MoveToPath(sourceFeedPath, ph.config.ProductCatalog.SentPath); er != nil {
+			log.Printf("ERROR COPYING THE SOURCE FILE %v to the '%v' folder", sourceFeedPath, ph.config.ProductCatalog.SentPath)
 		}
 
 		if validationReportPath != "" {
-			if _, er = adapters.MoveToPath(validationReportPath, ph.config.Catalog.SentPath); er != nil {
-				log.Printf("ERROR COPYING THE REPORT FILE %v to the '%v' folder", validationReportPath, ph.config.Catalog.SentPath)
+			if _, er = adapters.MoveToPath(validationReportPath, ph.config.ProductCatalog.SentPath); er != nil {
+				log.Printf("ERROR COPYING THE REPORT FILE %v to the '%v' folder", validationReportPath, ph.config.ProductCatalog.SentPath)
 			}
 		}
 	} else {
 		log.Printf("FAILURE: check the failure report in '%v', fill it with the data and upload to the '%v' folder.",
-			ph.config.Catalog.ReportPath,
-			ph.config.Catalog.SourcePath)
+			ph.config.ProductCatalog.ReportPath,
+			ph.config.ProductCatalog.SourcePath)
 		if validationReportPath != "" {
 			e := os.Remove(validationReportPath)
 
@@ -207,7 +207,7 @@ func (ph *ProductImportHandler) processFeed(
 		}
 	}
 
-	cleanUpFailures(sourceFeedPath, ph.config.Catalog.FailResultPath)
+	cleanUpFailures(sourceFeedPath, ph.config.ProductCatalog.FailResultPath)
 	validationReportPath = ph.reports.WriteReport(sourceFeedPath, hasErrors, feed, parsedData, columnMap)
 	if !hasErrors {
 		log.Println("IMPORT FEED TO TRADESHIFT WAS STARTED")

@@ -16,7 +16,7 @@ type RulesHandler struct {
 
 func NewRulesHandler(deps Deps) *RulesHandler {
 	return &RulesHandler{
-		sourcePath:  deps.Config.Catalog.OntologyPath,
+		sourcePath:  deps.Config.ProductCatalog.OntologyPath,
 		reader:      deps.Handler,
 		fileManager: deps.FilesManager,
 	}
