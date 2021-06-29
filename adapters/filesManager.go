@@ -25,7 +25,7 @@ type FileManager struct {
 }
 
 func NewFileManager(deps Deps) *FileManager {
-	conf := deps.Config.Catalog
+	conf := deps.Config.ProductCatalog
 	return &FileManager{
 		SourcePath:                 conf.SourcePath,
 		SecondValidationSourcePath: conf.SecondValidationSourcePath,

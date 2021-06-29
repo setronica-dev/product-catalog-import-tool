@@ -1,7 +1,7 @@
 package config
 
 type ServiceConfig struct {
-	Port                       uint16
+	Port uint16
 }
 
 type TradeshiftAPIConfig struct {
@@ -13,7 +13,7 @@ type TradeshiftAPIConfig struct {
 	TenantId       string
 }
 
-type CatalogConfig struct {
+type ProductCatalogConfig struct {
 	SourcePath                 string
 	ReportPath                 string
 	SecondValidationSourcePath string
@@ -23,4 +23,9 @@ type CatalogConfig struct {
 	InProgressPath             string
 	SuccessResultPath          string
 	FailResultPath             string
+}
+
+type OfferCatalogConfig struct {
+	SourcePath string
+	SentPath   string
 }

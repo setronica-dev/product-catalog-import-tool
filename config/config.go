@@ -30,9 +30,10 @@ func Init() {
 }
 
 type Config struct {
-	Service       ServiceConfig
-	Catalog       CatalogConfig
-	TradeshiftAPI TradeshiftAPIConfig
+	Service        ServiceConfig
+	ProductCatalog ProductCatalogConfig
+	OfferCatalog   OfferCatalogConfig
+	TradeshiftAPI  TradeshiftAPIConfig
 }
 
 func Get() *Config {
@@ -42,11 +43,13 @@ func Get() *Config {
 }
 
 func configFromRaw(rawService *RawServiceConfig) *Config {
-	c := rawService.CatalogConfig
+	c := rawService.ProductCatalogConfig
 	t := rawService.TradeshiftAPIConfig
+	o := rawService.OfferCatalogConfig
 	return &Config{
-		Service:       *rawService.ToConfig(),
-		Catalog:       *c.ToConfig(),
-		TradeshiftAPI: *t.ToConfig(),
+		Service:        *rawService.ToConfig(),
+		ProductCatalog: *c.ToConfig(),
+		OfferCatalog:   *o.ToConfig(),
+		TradeshiftAPI:  *t.ToConfig(),
 	}
 }
