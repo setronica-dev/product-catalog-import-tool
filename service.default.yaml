@@ -3,17 +3,17 @@ debug: false
 
 product:
   source: ./data/source/products/
-  report: ./data/result/report
-  sent: ./data/source/processed/products
-  in_progress: ./data/source/inprogress
-  success_result: ./data/result/sent
-  fail_result: ./data/result/report
+  report: ./data/result/report/
+  sent: ./data/source/processed/products/
+  in_progress: ./data/source/inprogress/
+  success_result: ./data/result/sent/
+  fail_result: ./data/result/report/
   mapping: ./data/mapping/mapping.yaml
   ontology: ./data/ontology/rules.csv
 
 offer:
   source: ./data/source/offers/
-  sent: ./data/source/processed/offers
+  sent: ./data/source/processed/offers/
 
 tradeshift_api:
   # set Tradeshift API parameters from API Access To Own Account in Tradeshift pannel
