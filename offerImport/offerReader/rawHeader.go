@@ -10,7 +10,7 @@ const (
 	defaultReceiver   = "Receiver"
 	defaultContractID = "Contract ID"
 	defaultValidFrom  = "Valid From"
-	defaultExpiresAt  = "ExpiresAt"
+	defaultExpiresAt  = "Expires At"
 	defaultCountries  = "Countries"
 )
 

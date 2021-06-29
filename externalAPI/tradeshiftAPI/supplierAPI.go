@@ -1,11 +1,10 @@
 package tradeshiftAPI
 
 import (
+	json "encoding/json"
 	"fmt"
-	"log"
 	"net/url"
 	"strconv"
-	"strings"
 	"ts/externalAPI/rest"
 )
 
@@ -39,7 +38,8 @@ func (t *TradeshiftAPI) UploadFile(filePath string) (map[string]interface{}, err
 
 func (t *TradeshiftAPI) RunImportAction(fileID string) (string, error) {
 	method := fmt.Sprintf("/product-engine/supplier/supplier/v1/product-import/files/%v/actions/import-products", url.QueryEscape(fileID))
-	resp, err := t.Client.Post(method,
+	resp, err := t.Client.Post(
+		method,
 		nil,
 		[]rest.UrlParam{
 			{
@@ -79,7 +79,7 @@ func (t *TradeshiftAPI) SearchOffer(name string) (map[string]interface{}, error)
 	params := []rest.UrlParam{
 		{
 			Key:   "advancedSearch",
-			Value: fmt.Sprintf("{\"name\":\"%v\"}", name),
+			Value: buildAdvancedSearchValue(name),
 		},
 		{
 			Key:   "sort",
@@ -95,6 +95,14 @@ func (t *TradeshiftAPI) SearchOffer(name string) (map[string]interface{}, error)
 	return r, err
 }
 
+func buildAdvancedSearchValue(name string) string {
+	value := map[string]interface{}{
+		"name": name,
+	}
+	jsonStr, _ := json.Marshal(value)
+	return fmt.Sprintf("%s", jsonStr)
+}
+
 func (t *TradeshiftAPI) CreateOffer(name string, buyerID string) (string, error) {
 	method := "/product-engine/supplier/supplier/v1/offers"
 	params := []rest.UrlParam{
@@ -104,18 +112,17 @@ func (t *TradeshiftAPI) CreateOffer(name string, buyerID string) (string, error)
 		},
 	}
 
-	data := name
 	resp, err := t.Client.Post(
 		method,
-		strings.NewReader(data),
+		rest.BuildBody(name),
 		params)
-	rr, err := rest.ParseResponseToString(resp)
 
-	log.Println(rr)
 	if err != nil {
 		return "", err
 	}
-
 	r, err := rest.ParseResponseToString(resp)
+	if err != nil {
+		return "", err
+	}
 	return r, err
 }

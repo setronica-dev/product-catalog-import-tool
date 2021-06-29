@@ -7,6 +7,7 @@ import (
 	"ts/di"
 	"ts/externalAPI/rest"
 	"ts/externalAPI/tradeshiftAPI"
+	"ts/offerImport"
 	"ts/offerImport/importHandler"
 	"ts/productImport"
 	"ts/productImport/mapping"
@@ -38,10 +39,12 @@ func start(
 	fileManager *adapters.FileManager,
 	rest rest.RestClientInterface,
 	tradeshiftAPI *tradeshiftAPI.TradeshiftAPI,
-	tradeshiftHandler *tradeshiftImportHandler.TradeshiftHandler,
-	productsImportHandler *productImport.ProductImportHandler,
-	importOfferHandler importHandler.ImportOfferInterface,
+	tradeshiftProductHandler *tradeshiftImportHandler.TradeshiftHandler,
+	tradeshiftOfferHandler importHandler.ImportOfferInterface,
+	productImportHandler *productImport.ProductImportHandler,
+	offerImportHandler *offerImport.OfferImportHandler,
 ) {
-	productsImportHandler.Run()
+	offerImportHandler.Run()
+	productImportHandler.Run()
 	return
 }

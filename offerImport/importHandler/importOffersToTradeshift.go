@@ -18,53 +18,57 @@ func NewImportOfferHandler(deps Deps) ImportOfferInterface {
 }
 
 func (i *ImportOfferHandler) ImportOffers(offers []offerReader.RawOffer) {
-
 	for _, item := range offers {
-		res, err := i.ImportOffer(item.Offer, item.Receiver)
-		fmt.Sprintf("This is res %v, and this is err: %v", res, err)
+		_, err := i.ImportOffer(item.Offer, item.Receiver)
+		if err != nil {
+			log.Printf("failed to import offer \"%v\". Reason:  %v", item.Offer, err)
+		}
 	}
 }
 
 func (i *ImportOfferHandler) ImportOffer(offerName string, buyerID string) (Status, error) {
-
-	err := i.findBuyer(offerName, buyerID)
+	isFound, err := i.isBuyerExists(buyerID)
 	if err != nil {
-		return BuyerNotFound, err
+		return Failed, err
+	}
+	if !isFound {
+		log.Print("buyer \"%v\" was not found", buyerID)
+		return BuyerNotFound, nil
 	}
 
-	isFound, err := i.findOffer(offerName, buyerID)
+	isFound, err = i.isOfferExists(offerName, buyerID)
 	if err != nil {
 		return Failed, err
 	}
 	if isFound {
-		//todo update offer (mvp 2)
+		log.Print("offer \"%v\" was found", offerName)
 		return OfferFound, nil
 	}
 
 	code, err := i.createOffer(offerName, buyerID)
 	if err != nil {
-		return Failed, fmt.Errorf("failed to create offer: %v", err)
+		return Failed, fmt.Errorf("offer was not created: %v", err)
 	}
 
-	log.Println("new offer created: %v", code)
+	log.Printf("new offer was created: \"%v\"", code)
 	return OfferCreated, nil
 }
 
-func (i *ImportOfferHandler) findBuyer(offerName string, buyerID string) error {
+func (i *ImportOfferHandler) isBuyerExists(buyerID string) (bool, error) {
 	res, err := i.transport.GetBuyer(buyerID)
 	if err != nil {
-		return fmt.Errorf("buyer %v not found: %v", buyerID, err)
+		return false, fmt.Errorf("buyer \"%v\" not found: %v", buyerID, err)
 	}
-	if fmt.Sprintf("%s", res["Connected"]) != "true" {
-		return fmt.Errorf("buyer %v for offer %v not connected with supplier", buyerID, offerName)
+	if fmt.Sprintf("%v", res["Connected"]) != "true" {
+		return false, nil
 	}
-	return nil
+	return true, nil
 }
 
-func (i *ImportOfferHandler) findOffer(offerName string, buyerID string) (bool, error) {
+func (i *ImportOfferHandler) isOfferExists(offerName string, buyerID string) (bool, error) {
 	res, err := i.transport.SearchOffer(offerName)
 	if err != nil {
-		return false, fmt.Errorf("failed to find offer: %v", err)
+		return false, fmt.Errorf("failed to find offer \"%v\": %v", offerName, err)
 	}
 	if res["total"].(float64) > 0.0 {
 		data := res["data"].([]interface{})
@@ -81,7 +85,7 @@ func (i *ImportOfferHandler) findOffer(offerName string, buyerID string) (bool, 
 func (i *ImportOfferHandler) createOffer(offerName string, buyerID string) (string, error) {
 	offerCode, err := i.transport.CreateOffer(offerName, buyerID)
 	if err != nil {
-		return "", fmt.Errorf("failed to create offer: %v", err)
+		return "", err
 	}
 	return offerCode, nil
 }
