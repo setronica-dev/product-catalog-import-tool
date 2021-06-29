@@ -1,11 +1,17 @@
 # The tool for a product feed validation, transformation and uploading to the predefined system
 
+## Code quality
+
+[![Security Rating](https://sonarcloud.io/api/project_badges/measure?project=setronica-dev_product-catalog-import-tool&metric=security_rating)](https://sonarcloud.io/dashboard?id=setronica-dev_product-catalog-import-tool)
+[![Maintainability Rating](https://sonarcloud.io/api/project_badges/measure?project=setronica-dev_product-catalog-import-tool&metric=sqale_rating)](https://sonarcloud.io/dashboard?id=setronica-dev_product-catalog-import-tool)
+[![Bugs](https://sonarcloud.io/api/project_badges/measure?project=setronica-dev_product-catalog-import-tool&metric=bugs)](https://sonarcloud.io/dashboard?id=setronica-dev_product-catalog-import-tool)
 
 ## Preamble
+
 We are Setronica company with the great experience to build B2B and B2C integrations to exchange product catalog information between PIMs, Marketplaces, Storefronts, ERPs, services, and platforms. We know that it is quite difficult to integrate with a new service or a platform and we defined two the most important reasons:
-    
-1.  Each service has its native data and API formats. It takes time to meet and configure it properly. And even if a service provides a lot of integration flexibility then it still requires to meet with this flexibility and to configure it properly;
-2.  Each seller has its data format with which they are used to working or just because their PIM system supports it.
+
+1. Each service has its native data and API formats. It takes time to meet and configure it properly. And even if a service provides a lot of integration flexibility then it still requires to meet with this flexibility and to configure it properly;
+2. Each seller has its data format with which they are used to working or just because their PIM system supports it.
 
 This problem can be solved in three ways: on a seller side, on the system side, and by finding an external service that helps with the integration to the system. Each of them has its pros and cons. It is up to you to choose the best one for you. You may be lucky to have the integration as out of the box with the system. But all others who find it painful are welcome. This solution was built for you.
 
@@ -14,33 +20,35 @@ So we tried here to implement something simple to have the ability to integrate 
 
 We implemented four steps where each of them can be switched on/off if it isn’t applicable for your case:
 
-1.  Map data from your field names to the system field names; 
-2.  Validate data based on the system rules;
-3.  Transform data into the system’s native format;
-4.  Send data to the system.
+1. Map data from your field names to the system field names;
+2. Validate data based on the system rules;
+3. Transform data into the system’s native format;
+4. Send data to the system.
 
 The tool is supporting:
 
-*  the integration with the following systems: Tradeshift;
-*  the following formats of incoming data: CSV;
-*  the following formats of outcoming data: CSV, EHF (in the nearest future).
+* the integration with the following systems: Tradeshift;
+* the following formats of incoming data: CSV;
+* the following formats of outcoming data: CSV, EHF (in the nearest future).
 
 ## How does it work?
-You need to do some configuration steps one time to allow it working autonomily and make automatization if you need. 
+
+You need to do some configuration steps one time to allow it working autonomily and make automatization if you need.
 After this you just need to place a file in CSV format. If it is XLSX then it has to be saved as CSV first. Later we will start supporting more formats.
 
-1.  Place the source code of tool on an infrastructure and build it;
-2.  Place the system’s credentials into the configuration file to make a connection;
-3.  Configure the mapping file and. place it into the 'mapping' folder;
-4.  Place the file with validation rules into the 'ontology' folder;
-5.  Place your source file into the ‘source’ folder;
-6.  Run the tool [Click to see more...](./USAGE.md);
+1. Place the source code of tool on an infrastructure and build it;
+2. Place the system’s credentials into the configuration file to make a connection;
+3. Configure the mapping file and. place it into the 'mapping' folder;
+4. Place the file with validation rules into the 'ontology' folder;
+5. Place your source file into the ‘source’ folder;
+6. Run the tool [Click to see more...](./USAGE.md);
 
         ./product-catalog-import-tool
 
-7.  If everything is fine, then you can automate this process. Just export your files in your format into the 'source' folder and configure a scheduler to run the tool with some frequency.
+7. If everything is fine, then you can automate this process. Just export your files in your format into the 'source' folder and configure a scheduler to run the tool with some frequency.
 
 ## Build
+
 You need to run the following command to build the tool and initialise default folders [Click to see more...](./INSTALL.md):
 
         ./install.sh -d [workdir]
@@ -49,6 +57,7 @@ where:
     [workdir] - is the path to your working directory to process files. The tool will automatically create all needed folders.
 
 ## Configuration file
+
 This [./service.yaml](service.yaml)  file contains settings to let the tool know about all needed folders and files on the file system
 
     catalog:
@@ -59,7 +68,7 @@ This data will be filled in properly when you will build the tool. So there aren
 
 This tool contains settings to establish an API connection with the system as well.
 
-The easiest way to get started working with the Tradeshift API is to create OAuth credentials by activating the [API Access to Own Account]( https://sandbox.tradeshift.com/#/apps/Tradeshift.AppStore/apps/Tradeshift.APIAccessToOwnAccount) app. 
+The easiest way to get started working with the Tradeshift API is to create OAuth credentials by activating the [API Access to Own Account]( https://sandbox.tradeshift.com/#/apps/Tradeshift.AppStore/apps/Tradeshift.APIAccessToOwnAccount) app.
 The app will display your credentials. Just copy these values and paste them into the configuration file:
 
     *  base_url
@@ -70,9 +79,11 @@ The app will display your credentials. Just copy these values and paste them int
     *  tenant_id
 
 ## Mapping file
-This file provides ability to configure a mapping between some standard fields that known for the tool and your fields. 
+
+This file provides ability to configure a mapping between some standard fields that known for the tool and your fields.
 [Click to see more...](./MAPPING.md)
 
 ## Ontology file
+
 This file provides ability to configure specific rules based on which all incoming files have to be validated.
 [Click to see more...](./ONTOLOGY.md)
