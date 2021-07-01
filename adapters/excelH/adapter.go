@@ -1,10 +1,9 @@
 package excelH
 
 import (
-	"container/list"
 	"fmt"
-	"github.com/tealeg/xlsx"
-	"log"
+	"ts/file/xlsxFile"
+	"ts/utils"
 )
 
 const (
@@ -12,7 +11,7 @@ const (
 )
 
 type Adapter struct {
-	header list.List
+	header []string
 }
 
 func (h *Adapter) Alias() string {
@@ -20,49 +19,31 @@ func (h *Adapter) Alias() string {
 }
 
 func (h *Adapter) GetHeader() []string {
-	log.Printf("getHeader method is not implemented yet")
-	return nil
+	return h.header
 }
 
-func (h *Adapter) Read(filePath string) []map[string]interface{} {
-	xlFile, err := xlsx.OpenFile(filePath)
+func (h *Adapter) setHeader(header []string) {
+	h.header = header
+}
+
+func (h *Adapter) Read(path string) ([][]string, error) {
+	res, err := xlsxFile.Read(path)
 	if err != nil {
-		fmt.Println("Error reading the file")
+		return nil, fmt.Errorf("failed to Read  %v: %v", path, err)
 	}
-
-	parsedData := make([]map[string]interface{}, 0, 0)
-	headerName := list.New()
-	// sheet
-	for _, sheet := range xlFile.Sheets {
-		// rows
-		for rowCounter, row := range sheet.Rows {
-			// column
-			headerIterator := headerName.Front()
-			var singleMap = make(map[string]interface{})
-
-			for _, cell := range row.Cells {
-				if rowCounter == 0 {
-					text := cell.String()
-					headerName.PushBack(text)
-				} else {
-					text := cell.String()
-					singleMap[headerIterator.Value.(string)] = text
-					headerIterator = headerIterator.Next()
-				}
-			}
-			if rowCounter != 0 && len(singleMap) > 0 {
-				parsedData = append(parsedData, singleMap)
-			}
-		}
-	}
-	return parsedData
+	h.setHeader(res[0])
+	return res, nil
 }
 
-func (h *Adapter) Parse(blobPath string) []map[string]interface{} {
-	parsedData := h.Read(blobPath)
-	return parsedData
+func (h *Adapter) Parse(path string) ([]map[string]interface{}, error) {
+	data, err := h.Read(path)
+	if err != nil {
+		return nil, err
+	}
+	res, err := utils.RowsToMapRows(data, h.header)
+	return res, err
 }
 
-func (h *Adapter) Write(filepath string, data [][]string) {
-	log.Fatalf("write method is not implemented yet")
+func (h *Adapter) Write(filepath string, data [][]string) error {
+	return fmt.Errorf("write method is not implemented yet")
 }

@@ -133,3 +133,24 @@ func GetMapOrDefault(key string, source map[string]string) string {
 	}
 	return key
 }
+
+func RowsToMapRows(data [][]string, header []string) ([]map[string]interface{}, error) {
+	parsedData := make([]map[string]interface{}, 0, 0)
+
+	if len(header) == 0 {
+		return nil, fmt.Errorf("header is undefind")
+	}
+	for rowCounter, row := range data {
+		if rowCounter > 0 {
+			var singleMap = make(map[string]interface{})
+			for colCounter, col := range row {
+				i := header[colCounter]
+				singleMap[i] = col
+			}
+			if len(singleMap) > 0 {
+				parsedData = append(parsedData, singleMap)
+			}
+		}
+	}
+	return parsedData, nil
+}
