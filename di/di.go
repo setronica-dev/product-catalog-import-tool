@@ -10,6 +10,7 @@ import (
 	"ts/offerImport"
 	"ts/offerImport/importHandler"
 	"ts/offerImport/offerReader"
+	"ts/prepareImport"
 	"ts/productImport"
 	"ts/productImport/mapping"
 	"ts/productImport/ontologyRead"
@@ -42,6 +43,7 @@ var diConfig = []entry{
 	{constructor: tradeshiftImportHandler.NewTradeshiftHandler},
 	{constructor: importHandler.NewImportOfferHandler},
 
+	{constructor: prepareImport.NewPrepareImportHandler},
 	{constructor: productImport.NewProductImportHandler},
 	{constructor: offerImport.NewOfferImportHandler},
 }

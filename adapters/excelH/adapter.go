@@ -2,12 +2,14 @@ package excelH
 
 import (
 	"fmt"
+	"strings"
 	"ts/file/xlsxFile"
 	"ts/utils"
 )
 
 const (
-	alias = "excel"
+	alias         = "excel"
+	pathDelimiter = "::"
 )
 
 type Adapter struct {
@@ -27,12 +29,27 @@ func (h *Adapter) setHeader(header []string) {
 }
 
 func (h *Adapter) Read(path string) ([][]string, error) {
-	res, err := xlsxFile.Read(path)
+	filePath, sheet, err := parsePath(path)
+	if err != nil {
+		return nil, err
+	}
+	res, err := xlsxFile.Read(filePath, sheet)
 	if err != nil {
 		return nil, fmt.Errorf("failed to Read  %v: %v", path, err)
 	}
 	h.setHeader(res[0])
 	return res, nil
+}
+
+func parsePath(path string) (string, string, error) {
+	res := strings.SplitN(path, pathDelimiter, 2)
+	if len(res[0]) == 0 {
+		return "", "", fmt.Errorf("file path is not defined")
+	}
+	if len(res) == 1 || res[1] == "" {
+		return "", "", fmt.Errorf("sheet name is not defined")
+	}
+	return res[0], res[1], nil
 }
 
 func (h *Adapter) Parse(path string) ([]map[string]interface{}, error) {
