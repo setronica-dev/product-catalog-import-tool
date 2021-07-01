@@ -9,7 +9,7 @@ func TrimAll(input string) string {
 			strings.Replace(
 				input, "	", "", -1),
 			"*", "", -1),
-		"  ", " ", -1)
+		" ", "", -1)
 
 	return strings.ToLower(res)
 }
