@@ -25,6 +25,10 @@ func Init() {
 		log.Fatalf("unable to unmarshal config file %s\n%s", serviceConfigPath, err)
 	}
 
+	if err := GetValidator().Struct(rawServiceConfig); err != nil {
+		log.Fatalf("invalid config file %s\n%s", serviceConfigPath, err)
+	}
+
 	// unmarshal into the tmp raw config
 	config = configFromRaw(rawServiceConfig)
 }
@@ -33,6 +37,7 @@ type Config struct {
 	Service        ServiceConfig
 	ProductCatalog ProductCatalogConfig
 	OfferCatalog   OfferCatalogConfig
+	CommonConfig   CommonConfig
 	TradeshiftAPI  TradeshiftAPIConfig
 }
 
@@ -43,13 +48,15 @@ func Get() *Config {
 }
 
 func configFromRaw(rawService *RawServiceConfig) *Config {
-	c := rawService.ProductCatalogConfig
+	p := rawService.ProductCatalogConfig
 	t := rawService.TradeshiftAPIConfig
 	o := rawService.OfferCatalogConfig
+	c := rawService.CommonConfig
 	return &Config{
 		Service:        *rawService.ToConfig(),
-		ProductCatalog: *c.ToConfig(),
+		ProductCatalog: *p.ToConfig(),
 		OfferCatalog:   *o.ToConfig(),
+		CommonConfig:   *c.ToConfig(),
 		TradeshiftAPI:  *t.ToConfig(),
 	}
 }
