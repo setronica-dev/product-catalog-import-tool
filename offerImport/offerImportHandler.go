@@ -58,7 +58,9 @@ func (o *OfferImportHandler) uploadOffers(path string) ([]offerReader.RawOffer, 
 
 	offers := o.offerReader.UploadOffers(o.getSourcePath(path))
 	if len(offers) == 0 {
-		return nil, fmt.Errorf("Offer Upload failed: 0 offers were loaded from %v. Please, check file and try again", o.sourcePath)
+		return nil, fmt.Errorf(
+			"Offer Upload failed: 0 offers were loaded from %v. Please, check file and try again",
+			o.sourcePath)
 	}
 	err := o.processSourceFile(path)
 	return offers, err

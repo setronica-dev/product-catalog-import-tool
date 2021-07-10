@@ -3,8 +3,11 @@ package tradeshiftAPI
 import (
 	json "encoding/json"
 	"fmt"
+	"log"
 	"net/url"
 	"strconv"
+	"strings"
+	"time"
 	"ts/externalAPI/rest"
 )
 
@@ -124,5 +127,37 @@ func (t *TradeshiftAPI) CreateOffer(name string, buyerID string) (string, error)
 	if err != nil {
 		return "", err
 	}
-	return r, err
+	return strings.Replace(r, "\"", "", -1), err
+}
+
+func (t *TradeshiftAPI) UpdateOffer(
+	offerID string,
+	name string,
+	startDate *time.Time,
+	endDate *time.Time,
+	countries []string) error {
+	method := fmt.Sprintf("/product-engine/supplier/supplier/v1/offers/%v", offerID)
+
+	data := map[string]interface{}{
+		"name": name,
+	}
+
+	if startDate != nil {
+		data["startDate"] = startDate.UnixNano() / int64(time.Millisecond)
+
+	}
+	if endDate != nil {
+		data["endDate"] = endDate.UnixNano() / int64(time.Millisecond)
+	}
+
+	if countries != nil {
+		data["countries"] = countries
+	}
+	log.Println(data)
+	_, err := t.Client.Put(
+		method,
+		rest.BuildBody(data),
+		nil)
+
+	return err
 }

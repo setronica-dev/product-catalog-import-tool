@@ -95,6 +95,20 @@ func (c *APIClient) PostFile(method string, filePath string) (*http.Response, er
 	return res, err
 }
 
+func (c *APIClient) Put(method string, body io.Reader, params []UrlParam) (*http.Response, error) {
+	contentType := "application/json"
+
+	req := c.buildRequest(
+		http.MethodPut,
+		c.buildUrl(method, params),
+		body,
+		buildParams(params))
+	req.Header.Set("Content-Type", contentType)
+
+	res, err := c.executeRequest(req)
+	return res, err
+}
+
 func (c *APIClient) Get(method string, params []UrlParam) (*http.Response, error) {
 	req := c.buildRequest(
 		http.MethodGet,
