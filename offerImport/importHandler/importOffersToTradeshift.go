@@ -3,6 +3,7 @@ package importHandler
 import (
 	"fmt"
 	"log"
+	"time"
 	"ts/externalAPI/tradeshiftAPI"
 	"ts/offerImport/offerReader"
 )
@@ -18,12 +19,19 @@ func NewImportOfferHandler(deps Deps) ImportOfferInterface {
 }
 
 func (i *ImportOfferHandler) ImportOffers(offers []offerReader.RawOffer) {
+
 	for _, offer := range offers {
 		if err := validateOffer(offer); err != nil {
 			log.Printf("failed to import offer \"%v\". Reason:  %v", offer, err)
 			break
 		}
-		_, err := i.ImportOffer(offer.Offer, offer.Receiver)
+
+		_, err := i.ImportOffer(
+			offer.Offer,
+			offer.Receiver,
+			offer.ValidFrom,
+			offer.ExpiresAt,
+			offer.Countries)
 		if err != nil {
 			log.Printf("failed to import offer \"%v\". Reason:  %v", offer.Offer, err)
 		}
@@ -40,7 +48,12 @@ func validateOffer(offer offerReader.RawOffer) error {
 	return nil
 }
 
-func (i *ImportOfferHandler) ImportOffer(offerName string, buyerID string) (Status, error) {
+func (i *ImportOfferHandler) ImportOffer(
+	offerName string,
+	buyerID string,
+	startDate *time.Time,
+	endDate *time.Time,
+	countries []string) (Status, error) {
 	isFound, err := i.isBuyerExists(buyerID)
 	if err != nil {
 		return Failed, err
@@ -58,9 +71,9 @@ func (i *ImportOfferHandler) ImportOffer(offerName string, buyerID string) (Stat
 		return OfferFound, nil
 	}
 
-	code, err := i.createOffer(offerName, buyerID)
+	code, err := i.createOffer(offerName, buyerID, startDate, endDate, countries)
 	if err != nil {
-		return Failed, fmt.Errorf("offer was not created: %v", err)
+		return Failed, err
 	}
 
 	log.Printf("new offer was created: \"%v\"", code)
@@ -95,10 +108,19 @@ func (i *ImportOfferHandler) isOfferExists(offerName string, buyerID string) (bo
 	return false, nil
 }
 
-func (i *ImportOfferHandler) createOffer(offerName string, buyerID string) (string, error) {
-	offerCode, err := i.transport.CreateOffer(offerName, buyerID)
+func (i *ImportOfferHandler) createOffer(
+	offerName string,
+	buyerID string,
+	startDate *time.Time,
+	endDate *time.Time,
+	countries []string) (string, error) {
+	offerID, err := i.transport.CreateOffer(offerName, buyerID)
 	if err != nil {
-		return "", err
+		return "", fmt.Errorf("offer %v was not created: %v", offerName, err)
 	}
-	return offerCode, nil
+	err = i.transport.UpdateOffer(offerID, offerName, startDate, endDate, countries)
+	if err != nil {
+		return offerID, fmt.Errorf("offer %v was not updated: %v", offerID, err)
+	}
+	return offerID, nil
 }
