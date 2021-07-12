@@ -9,6 +9,7 @@ import (
 	"ts/externalAPI/tradeshiftAPI"
 	"ts/offerImport"
 	"ts/offerImport/importHandler"
+	"ts/prepareImport"
 	"ts/productImport"
 	"ts/productImport/mapping"
 	"ts/productImport/ontologyRead"
@@ -41,10 +42,12 @@ func start(
 	tradeshiftAPI *tradeshiftAPI.TradeshiftAPI,
 	tradeshiftProductHandler *tradeshiftImportHandler.TradeshiftHandler,
 	tradeshiftOfferHandler importHandler.ImportOfferInterface,
+	prepareImportHandler *prepareImport.Handler,
 	productImportHandler *productImport.ProductImportHandler,
 	offerImportHandler *offerImport.OfferImportHandler,
 ) {
-	offerImportHandler.Run()
-	productImportHandler.Run()
+	prepareImportHandler.Run()
+	offerImportHandler.RunCSV()
+	productImportHandler.RunCSV()
 	return
 }

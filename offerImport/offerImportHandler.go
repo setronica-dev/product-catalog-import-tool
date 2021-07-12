@@ -33,7 +33,7 @@ func NewOfferImportHandler(deps Deps) *OfferImportHandler {
 	}
 }
 
-func (o *OfferImportHandler) Run() {
+func (o *OfferImportHandler) RunCSV() {
 	paths := adapters.GetFiles(o.sourcePath)
 	if len(paths) == 0 {
 		log.Fatalf("Offer Import failed: please, put file with offers into %v", o.sourcePath)
