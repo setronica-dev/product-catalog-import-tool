@@ -41,7 +41,8 @@ func (o *OfferReader) UploadOffers(path string) []RawOffer {
 	actualHeader := o.reader.GetHeader()
 	header, err := processHeader(actualHeader)
 	if err != nil {
-		log.Fatalf("failed to upload rules: %v", err)
+		log.Printf("failed to upload rules: %v", err)
+		return nil
 	}
 	or := processOffers(parsedRaws, header)
 	log.Printf("Offers upload finished.")
