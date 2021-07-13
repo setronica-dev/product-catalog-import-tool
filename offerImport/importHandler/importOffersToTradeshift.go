@@ -18,12 +18,26 @@ func NewImportOfferHandler(deps Deps) ImportOfferInterface {
 }
 
 func (i *ImportOfferHandler) ImportOffers(offers []offerReader.RawOffer) {
-	for _, item := range offers {
-		_, err := i.ImportOffer(item.Offer, item.Receiver)
+	for _, offer := range offers {
+		if err := validateOffer(offer); err != nil {
+			log.Printf("failed to import offer \"%v\". Reason:  %v", offer, err)
+			break
+		}
+		_, err := i.ImportOffer(offer.Offer, offer.Receiver)
 		if err != nil {
-			log.Printf("failed to import offer \"%v\". Reason:  %v", item.Offer, err)
+			log.Printf("failed to import offer \"%v\". Reason:  %v", offer.Offer, err)
 		}
 	}
+}
+
+func validateOffer(offer offerReader.RawOffer) error {
+	if offer.Offer == "" {
+		return fmt.Errorf("offer name should be defined")
+	}
+	if offer.Receiver == "" {
+		return fmt.Errorf("offer receiver should be defined")
+	}
+	return nil
 }
 
 func (i *ImportOfferHandler) ImportOffer(offerName string, buyerID string) (Status, error) {
@@ -32,7 +46,6 @@ func (i *ImportOfferHandler) ImportOffer(offerName string, buyerID string) (Stat
 		return Failed, err
 	}
 	if !isFound {
-		log.Print("buyer \"%v\" was not found", buyerID)
 		return BuyerNotFound, nil
 	}
 
