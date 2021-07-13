@@ -52,6 +52,7 @@ func (h *Handler) Write(filepath string, data [][]string) {
 
 func (h *Handler) Parse(filePath string) []map[string]interface{} {
 	res, err := h.Adapter.Parse(filePath)
+	h.header = h.Adapter.GetHeader()
 	if err != nil {
 		log.Fatalf("failed to Read file %v: %v", filePath, err)
 	}
