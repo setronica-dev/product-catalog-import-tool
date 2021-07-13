@@ -53,26 +53,49 @@ func (o *OfferReader) UploadOffers(path string) []RawOffer {
 func processOffers(raws []map[string]interface{}, header *RawHeader) []RawOffer {
 	res := make([]RawOffer, len(raws))
 	for i, item := range raws {
-		offer := RawOffer{
-			Offer:    fmt.Sprintf("%v", item[header.Offer]),
-			Receiver: fmt.Sprintf("%v", item[header.Receiver]),
+		offer := processOffer(header, item)
+		if offer != nil {
+			res[i] = *offer
 		}
-		if header.ContractID != "" {
-			offer.Contract = fmt.Sprintf("%v", item[header.ContractID])
-		}
-		if header.ValidFrom != "" {
-			offer.ValidFrom = fmt.Sprintf("%v", item[header.ValidFrom])
-		}
-		if header.ExpiresAt != "" {
-			offer.ExpiresAt = fmt.Sprintf("%v", item[header.ExpiresAt])
-		}
-		if header.Countries != "" {
-			offer.Countries = fmt.Sprintf("%v", item[header.Countries])
-		}
-		res[i] = offer
+	}
+	return res
+}
+
+func processOffer(header *RawHeader, row map[string]interface{}) *RawOffer {
+	if isEmptyRow(row) {
+		return nil
+	}
+	if row[header.Offer] == nil || row[header.Receiver] == nil {
+		log.Printf("row does not contain values in required columns (Offer, Receiver). Actual value: %v", row)
+		return nil
 	}
 
-	return res
+	offer := RawOffer{
+		Offer:    fmt.Sprintf("%v", row[header.Offer]),
+		Receiver: fmt.Sprintf("%v", row[header.Receiver]),
+	}
+	if header.ContractID != "" {
+		offer.Contract = fmt.Sprintf("%v", row[header.ContractID])
+	}
+	if header.ValidFrom != "" {
+		offer.ValidFrom = fmt.Sprintf("%v", row[header.ValidFrom])
+	}
+	if header.ExpiresAt != "" {
+		offer.ExpiresAt = fmt.Sprintf("%v", row[header.ExpiresAt])
+	}
+	if header.Countries != "" {
+		offer.Countries = fmt.Sprintf("%v", row[header.Countries])
+	}
+	return &offer
+}
+
+func isEmptyRow(row map[string]interface{}) bool {
+	for _, value := range row {
+		if value != nil && value != "" {
+			return false
+		}
+	}
+	return true
 }
 
 func processHeader(parsedHeader []string) (*RawHeader, error) {
