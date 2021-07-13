@@ -47,7 +47,6 @@ func NewPrepareImportHandler(deps Deps) *Handler {
 func (h *Handler) Run() {
 	files := getXLSXFiles(h.sourcePath)
 	if len(files) == 0 {
-		log.Printf("no xlsx files for imports are specified in %v", h.sourcePath)
 		return
 	}
 
