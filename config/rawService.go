@@ -1,7 +1,7 @@
 package config
 
 type RawServiceConfig struct {
-	Port                 uint16                  `yaml:"port" validate:"required"`
+	Port                 uint16                  `yaml:"port"`
 	ProductCatalogConfig RawProductCatalogConfig `yaml:"product" validate:"required"`
 	OfferCatalogConfig   RawOfferCatalogConfig   `yaml:"offer" validate:"required"`
 	CommonConfig         RawCommonCatalogConfig  `yaml:"common" validate:"required"`
