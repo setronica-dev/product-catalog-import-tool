@@ -2,9 +2,6 @@
 function create_config {
   DIR=$1
   cat >./service.yaml <<EOF
-port: 8085
-debug: false
-
 product:
   source: ${DIR}/data/source/products/
   report: ${DIR}/data/result/report/
@@ -18,6 +15,14 @@ offer:
   source: ${DIR}/data/source/offers/
   sent: ${DIR}/data/source/processed/offers/
 
+common:
+  source: ${DIR}/data/source/
+  sent: ${DIR}/data/source/processed/
+  sheet:
+    products: "Products"
+    offers: "Offers"
+    failures: "Attributes"
+
 tradeshift_api:
   # set Tradeshift API parameters from API Access To Own Account in Tradeshift pannel
   base_url:
@@ -29,18 +34,22 @@ tradeshift_api:
 EOF
 }
 
-while getopts d: OPT; do
-  case "$OPT" in
-  d)
-    DIR="$OPTARG"
-    ;;
-  [?])
-    # got invalid option
-    echo "Usage: $0 [-d work directory]" >&2
-    exit 1
-    ;;
-  esac
+usage() { echo "Usage: $0 [-d <targed dir>]" 1>&2; exit 1; }
+
+while getopts ":d:" o; do
+    case "${o}" in
+        d)
+            DIR=${OPTARG}
+            ;;
+        *)
+            usage
+            ;;
+    esac
 done
+shift $((OPTIND-1))
+if [ -z "${DIR}" ]; then
+    usage
+fi
 
 go test ./...
 go get ./...
