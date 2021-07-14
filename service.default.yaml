@@ -1,6 +1,3 @@
-port: 8085
-debug: false
-
 product:
   source: ./data/source/products/
   report: ./data/result/report/
