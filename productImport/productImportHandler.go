@@ -53,7 +53,7 @@ func NewProductImportHandler(deps Deps) *ProductImportHandler {
 	}
 }
 
-func (ph *ProductImportHandler) Run() {
+func (ph *ProductImportHandler) RunCSV() {
 	//ontology
 	var rulesConfig *models.OntologyConfig
 

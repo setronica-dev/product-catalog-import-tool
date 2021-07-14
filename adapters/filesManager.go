@@ -130,7 +130,6 @@ func GetFiles(folder string) []string {
 			file = append(file, name)
 		}
 	}
-
 	return file
 }
 

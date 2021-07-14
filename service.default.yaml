@@ -20,7 +20,6 @@ common:
     offers: "Offers"
     failures: "Attributes"
 
-
 tradeshift_api:
   # set Tradeshift API parameters from API Access To Own Account in Tradeshift pannel
   base_url:
