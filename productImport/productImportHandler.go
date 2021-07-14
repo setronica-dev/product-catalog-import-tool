@@ -63,7 +63,7 @@ func (ph *ProductImportHandler) RunCSV() {
 	}
 
 	// mappings
-	columnMap := ph.mapHandler.Init(ph.config.ProductCatalog.MappingPath)
+	columnMap := ph.mapHandler.Get()//Init(ph.config.ProductCatalog.MappingPath)
 
 	// feed
 	err = ph.processProducts(columnMap, rulesConfig)

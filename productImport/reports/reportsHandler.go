@@ -5,6 +5,7 @@ import (
 	"go.uber.org/dig"
 	"strings"
 	"ts/adapters"
+	"ts/productImport/mapping"
 	"ts/utils"
 )
 
@@ -23,16 +24,18 @@ type Deps struct {
 	dig.In
 	Handler     adapters.HandlerInterface
 	FileManager *adapters.FileManager
+	Mapping     mapping.MappingHandlerInterface
 }
 
 func NewReportsHandler(deps Deps) *ReportsHandler {
 	h := deps.Handler
 	h.Init(adapters.CSV)
+	m := deps.Mapping.Parse()
 
 	return &ReportsHandler{
 		Handler:     h,
 		FileManager: deps.FileManager,
-		Header:      initFirstRaw(),
+		Header:      initFirstRaw(m),
 	}
 }
 
@@ -79,11 +82,8 @@ func (r *ReportsHandler) buildSuccessData(report []Report, source []map[string]i
 	return res
 }
 
-func initFirstRaw() *ReportLabels {
-	return &ReportLabels{
-		ProductId:    "ProductID*",
-		Name:         "Name",
-		Category:     "Category",
+func initFirstRaw(m *mapping.ColumnMap) *ReportLabels {
+	labels := ReportLabels{
 		CategoryName: "Category Name",
 		AttrName:     "Attribute Name*",
 		AttrValue:    "Attribute Value*",
@@ -94,6 +94,24 @@ func initFirstRaw() *ReportLabels {
 		IsMandatory:  "Is Mandatory",
 		CodedVal:     "Coded Value",
 	}
+
+	if m.ProductID != "" {
+		labels.ProductId = m.ProductID
+	} else {
+		labels.ProductId = "ProductID*"
+	}
+	if m.Category != "" {
+		labels.Category = m.Category
+	} else {
+		labels.Category = "Category"
+	}
+	if m.Name != "" {
+		labels.Name = m.Name
+	} else {
+		labels.Name = "Name"
+	}
+
+	return &labels
 }
 
 func (r *ReportsHandler) buildRaw(item Report) []string {
@@ -114,20 +132,20 @@ func (r *ReportsHandler) buildRaw(item Report) []string {
 }
 
 func (r *ReportsHandler) buildHeaderRaw() []string {
-	item := r.Header
+	header := r.Header
 	return []string{
-		item.ProductId,
-		item.Name,
-		item.Category,
-		item.CategoryName,
-		item.AttrName,
-		item.AttrValue,
-		item.UoM,
-		item.Errors,
-		item.Description,
-		item.DataType,
-		item.IsMandatory,
-		item.CodedVal,
+		header.ProductId,
+		header.Name,
+		header.Category,
+		header.CategoryName,
+		header.AttrName,
+		header.AttrValue,
+		header.UoM,
+		header.Errors,
+		header.Description,
+		header.DataType,
+		header.IsMandatory,
+		header.CodedVal,
 	}
 }
 
