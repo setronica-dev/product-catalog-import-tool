@@ -1,25 +1,27 @@
 package reports
 
 import (
-	"fmt"
 	"go.uber.org/dig"
 	"strings"
 	"ts/adapters"
 	"ts/productImport/mapping"
-	"ts/utils"
 )
 
 const (
-	categoryKey  = "Category"
-	productIdKey = "ID"
-
 	idIndex       = 0
 	categoryIndex = 1
 )
 
+type ColumnMap struct {
+	Category  string
+	ProductID string
+	Name      string
+}
+
 type ReportsHandler struct {
 	Handler     adapters.HandlerInterface
 	Header      *ReportLabels
+	ColumnMap   *ColumnMap
 	FileManager *adapters.FileManager
 }
 
@@ -38,7 +40,12 @@ func NewReportsHandler(deps Deps) *ReportsHandler {
 	return &ReportsHandler{
 		Handler:     h,
 		FileManager: deps.FileManager,
-		Header:      initFirstRaw(m),
+		ColumnMap: &ColumnMap{
+			Category:  m.Category,
+			ProductID: m.ProductID,
+			Name:      m.Name,
+		},
+		Header: initFirstRaw(m),
 	}
 }
 
@@ -47,14 +54,13 @@ func (r *ReportsHandler) WriteReport(
 	isError bool,
 	report []Report,
 	sourceData []map[string]interface{},
-	columnMap map[string]string,
 ) string {
 	var data [][]string
 	path := r.buildPath(feedPath, isError)
 	if isError {
 		data = r.buildFailuresReportData(report)
 	} else {
-		data = r.buildSuccessData(report, sourceData, columnMap)
+		data = r.buildSuccessData(report, sourceData)
 	}
 	r.Handler.Write(path, data)
 	return path
@@ -76,12 +82,6 @@ func (r *ReportsHandler) buildFailuresReportData(report []Report) [][]string {
 		recordItem := r.buildRaw(item)
 		res = append(res, recordItem)
 	}
-	return res
-}
-
-func (r *ReportsHandler) buildSuccessData(report []Report, source []map[string]interface{}, columnMap map[string]string) [][]string {
-	var res [][]string
-	res = r.buildSuccessMapRaw(source, report, columnMap)
 	return res
 }
 
@@ -150,110 +150,4 @@ func (r *ReportsHandler) buildHeaderRaw() []string {
 		header.IsMandatory,
 		header.CodedVal,
 	}
-}
-
-/**
-* transformation iteration
- */
-func (r *ReportsHandler) buildSuccessMapRaw(source []map[string]interface{}, reportItems []Report, columnMap map[string]string) [][]string {
-
-	catKey := categoryKey
-	prodIdKey := productIdKey
-	var columnMapIndex map[string]string
-	if columnMap != nil && len(columnMap) > 0 {
-		if val, ok := columnMap[catKey]; ok {
-			catKey = val
-		}
-		if val, ok := columnMap[prodIdKey]; ok {
-			prodIdKey = val
-		}
-		columnMapIndex = utils.RevertMapKeyValue(columnMap)
-	}
-	// headers from the source but ID and Category go first
-
-	sourceRow := source[0]
-	orderedHeader := make([]string, 2)
-	orderedHeader[idIndex] = prodIdKey
-	orderedHeader[categoryIndex] = catKey
-	for k := range sourceRow {
-		if k != prodIdKey && k != catKey {
-			orderedHeader = append(orderedHeader, k)
-		}
-	}
-	// build index of header cols
-	headerLength := len(orderedHeader)
-	headerIndex := make(map[string]int64, headerLength)
-	for i, v := range orderedHeader {
-		headerIndex[v] = int64(i)
-	}
-	//form correct header with Mappings
-	headerTs := make([]string, len(orderedHeader))
-	for i, v := range orderedHeader {
-		headerTs[i] = utils.GetMapOrDefault(v, columnMapIndex)
-	}
-	//check all the ontology attribute columns are defined and if not - extend headerIndex and headerTs
-	for _, reportItem := range reportItems {
-		if _, ok := headerIndex[reportItem.AttrName]; !ok {
-			headerTs = append(headerTs, reportItem.AttrName)
-			headerIndex[reportItem.AttrName] = int64(len(headerTs) - 1)
-		}
-	}
-	// reset length
-	headerLength = len(headerTs)
-
-	// build final report
-	report := make([][]string, 1)
-	report[0] = headerTs
-	product := make([]string, 0)
-	productId := ""
-	for _, attribute := range reportItems {
-		if productId != attribute.ProductId {
-			productId = attribute.ProductId
-			//if product does not exist in the report yet
-			if len(product) > 0 {
-				report = append(report, product)
-			}
-
-			// first feel data from source file:
-			// - find product for attribute
-			var foundProduct map[string]interface{}
-			for _, sourceItem := range source {
-				if sourceItem[prodIdKey] == attribute.ProductId {
-					foundProduct = sourceItem
-					break
-				}
-			}
-
-			// - fill attributes
-			product = make([]string, headerLength)
-			for itemAttr, attrValue := range foundProduct {
-				if i, ok := headerIndex[itemAttr]; ok {
-					product[i] = fmt.Sprintf("%v", attrValue)
-				}
-			}
-
-			// fill main info for product:
-			if attribute.Category == "" {
-				product[categoryIndex] = fmt.Sprintf("%v", foundProduct[catKey])
-			} else {
-				product[categoryIndex] = attribute.Category
-			}
-
-			product[idIndex] = attribute.ProductId
-
-			// fill fixed attribute value:
-			if i, ok := headerIndex[attribute.AttrName]; ok {
-				product[i] = attribute.AttrValue
-			}
-		} else {
-			if i, ok := headerIndex[attribute.AttrName]; ok {
-				product[i] = attribute.AttrValue
-			}
-		}
-	}
-
-	if len(product) > 0 {
-		report = append(report, product)
-	}
-	return report
 }

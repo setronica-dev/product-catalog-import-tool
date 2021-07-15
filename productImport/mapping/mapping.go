@@ -14,8 +14,7 @@ const (
 )
 
 type mapping struct {
-	rawMap    map[string]string
-	parsedMap *ColumnMap
+	rawMap map[string]string
 }
 
 func NewMappingHandler(deps Deps) MappingHandlerInterface {

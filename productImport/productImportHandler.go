@@ -63,7 +63,7 @@ func (ph *ProductImportHandler) RunCSV() {
 	}
 
 	// mappings
-	columnMap := ph.mapHandler.Get()//Init(ph.config.ProductCatalog.MappingPath)
+	columnMap := ph.mapHandler.Get() //Init(ph.config.ProductCatalog.MappingPath)
 
 	// feed
 	err = ph.processProducts(columnMap, rulesConfig)
@@ -208,7 +208,7 @@ func (ph *ProductImportHandler) processFeed(
 	}
 
 	cleanUpFailures(sourceFeedPath, ph.config.ProductCatalog.FailResultPath)
-	validationReportPath = ph.reports.WriteReport(sourceFeedPath, hasErrors, feed, parsedData, columnMap)
+	validationReportPath = ph.reports.WriteReport(sourceFeedPath, hasErrors, feed, parsedData)
 	if !hasErrors {
 		log.Println("IMPORT FEED TO TRADESHIFT WAS STARTED")
 		er := ph.importHandler.ImportFeedToTradeshift(sourceFeedPath, validationReportPath)
