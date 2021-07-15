@@ -12,6 +12,9 @@ import (
 const (
 	categoryKey  = "Category"
 	productIdKey = "ID"
+
+	idIndex       = 0
+	categoryIndex = 1
 )
 
 type ReportsHandler struct {
@@ -49,7 +52,7 @@ func (r *ReportsHandler) WriteReport(
 	var data [][]string
 	path := r.buildPath(feedPath, isError)
 	if isError {
-		data = r.buildReportData(report)
+		data = r.buildFailuresReportData(report)
 	} else {
 		data = r.buildSuccessData(report, sourceData, columnMap)
 	}
@@ -65,7 +68,7 @@ func (r *ReportsHandler) buildPath(feedPath string, isError bool) string {
 	}
 }
 
-func (r *ReportsHandler) buildReportData(report []Report) [][]string {
+func (r *ReportsHandler) buildFailuresReportData(report []Report) [][]string {
 	var res [][]string
 	res = append(res, r.buildHeaderRaw())
 
@@ -149,7 +152,11 @@ func (r *ReportsHandler) buildHeaderRaw() []string {
 	}
 }
 
-func (r *ReportsHandler) buildSuccessMapRaw(source []map[string]interface{}, item []Report, columnMap map[string]string) [][]string {
+/**
+* transformation iteration
+ */
+func (r *ReportsHandler) buildSuccessMapRaw(source []map[string]interface{}, reportItems []Report, columnMap map[string]string) [][]string {
+
 	catKey := categoryKey
 	prodIdKey := productIdKey
 	var columnMapIndex map[string]string
@@ -163,69 +170,83 @@ func (r *ReportsHandler) buildSuccessMapRaw(source []map[string]interface{}, ite
 		columnMapIndex = utils.RevertMapKeyValue(columnMap)
 	}
 	// headers from the source but ID and Category go first
-	idIndex := 0
-	categoryIndex := 1
+
 	sourceRow := source[0]
-	slice := make([]string, 2)
-	slice[idIndex] = prodIdKey
-	slice[categoryIndex] = catKey
+	orderedHeader := make([]string, 2)
+	orderedHeader[idIndex] = prodIdKey
+	orderedHeader[categoryIndex] = catKey
 	for k := range sourceRow {
 		if k != prodIdKey && k != catKey {
-			slice = append(slice, k)
+			orderedHeader = append(orderedHeader, k)
 		}
 	}
 	// build index of header cols
-	length := len(slice)
-	index := make(map[string]int64, length)
-	for i, v := range slice {
-		index[v] = int64(i)
+	headerLength := len(orderedHeader)
+	headerIndex := make(map[string]int64, headerLength)
+	for i, v := range orderedHeader {
+		headerIndex[v] = int64(i)
 	}
 	//form correct header with Mappings
-	headerTs := make([]string, len(slice))
-	for i, v := range slice {
+	headerTs := make([]string, len(orderedHeader))
+	for i, v := range orderedHeader {
 		headerTs[i] = utils.GetMapOrDefault(v, columnMapIndex)
 	}
-	//check all the ontology attribute columns are defined and if not - extend index and headers
-	for _, v := range item {
-		if _, ok := index[v.AttrName]; !ok {
-			headerTs = append(headerTs, v.AttrName)
-			index[v.AttrName] = int64(len(headerTs) - 1)
+	//check all the ontology attribute columns are defined and if not - extend headerIndex and headerTs
+	for _, reportItem := range reportItems {
+		if _, ok := headerIndex[reportItem.AttrName]; !ok {
+			headerTs = append(headerTs, reportItem.AttrName)
+			headerIndex[reportItem.AttrName] = int64(len(headerTs) - 1)
 		}
 	}
 	// reset length
-	length = len(headerTs)
+	headerLength = len(headerTs)
+
 	// build final report
 	report := make([][]string, 1)
 	report[0] = headerTs
-	var product []string
+	product := make([]string, 0)
 	productId := ""
-	for _, attribute := range item {
+	for _, attribute := range reportItems {
 		if productId != attribute.ProductId {
 			productId = attribute.ProductId
 			//if product does not exist in the report yet
 			if len(product) > 0 {
 				report = append(report, product)
 			}
-			product = make([]string, length)
-			// first feel data from source file
+
+			// first feel data from source file:
+			// - find product for attribute
+			var foundProduct map[string]interface{}
 			for _, sourceItem := range source {
 				if sourceItem[prodIdKey] == attribute.ProductId {
-					for itemAttr, attrValue := range sourceItem {
-						if i, ok := index[itemAttr]; ok {
-							product[i] = fmt.Sprintf("%v", attrValue)
-						}
-					}
+					foundProduct = sourceItem
 					break
 				}
 			}
-			product[categoryIndex] = attribute.Category
+
+			// - fill attributes
+			product = make([]string, headerLength)
+			for itemAttr, attrValue := range foundProduct {
+				if i, ok := headerIndex[itemAttr]; ok {
+					product[i] = fmt.Sprintf("%v", attrValue)
+				}
+			}
+
+			// fill main info for product:
+			if attribute.Category == "" {
+				product[categoryIndex] = fmt.Sprintf("%v", foundProduct[catKey])
+			} else {
+				product[categoryIndex] = attribute.Category
+			}
+
 			product[idIndex] = attribute.ProductId
 
-			if i, ok := index[attribute.AttrName]; ok {
+			// fill fixed attribute value:
+			if i, ok := headerIndex[attribute.AttrName]; ok {
 				product[i] = attribute.AttrValue
 			}
 		} else {
-			if i, ok := index[attribute.AttrName]; ok {
+			if i, ok := headerIndex[attribute.AttrName]; ok {
 				product[i] = attribute.AttrValue
 			}
 		}
