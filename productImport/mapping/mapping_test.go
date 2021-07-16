@@ -8,7 +8,6 @@ import (
 func Test_mapping_Parse(t *testing.T) {
 	type fields struct {
 		rawMap    map[string]string
-		parsedMap *ColumnMap
 	}
 	tests := []struct {
 		name   string
@@ -46,7 +45,6 @@ func Test_mapping_Parse(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			m := &mapping{
 				rawMap:    tt.fields.rawMap,
-				parsedMap: tt.fields.parsedMap,
 			}
 			if got := m.Parse(); !reflect.DeepEqual(got, tt.want) {
 				t.Errorf("Parse() = %v, want %v", got, tt.want)
