@@ -7,6 +7,7 @@ import (
 	"strings"
 	"time"
 	"ts/adapters"
+	"ts/utils"
 )
 
 const dateLayout = "2006-01-02"
@@ -65,7 +66,7 @@ func processOffers(raws []map[string]interface{}, header *RawHeader) []RawOffer 
 }
 
 func processOffer(header *RawHeader, row map[string]interface{}) *RawOffer {
-	if isEmptyRow(row) {
+	if utils.IsEmptyMap(row) {
 		return nil
 	}
 	if row[header.Offer] == nil || row[header.Receiver] == nil {
@@ -100,15 +101,6 @@ func processOffer(header *RawHeader, row map[string]interface{}) *RawOffer {
 		offer.Countries = getCountries(row[header.Countries])
 	}
 	return &offer
-}
-
-func isEmptyRow(row map[string]interface{}) bool {
-	for _, value := range row {
-		if value != nil && value != "" {
-			return false
-		}
-	}
-	return true
 }
 
 func getCountries(input interface{}) []string {

@@ -8,48 +8,71 @@ import (
 	"regexp"
 	"ts/adapters"
 	"ts/config"
+	"ts/productImport/attribute"
 	"ts/productImport/mapping"
 	"ts/productImport/ontologyRead"
 	"ts/productImport/ontologyRead/models"
 	"ts/productImport/ontologyValidator"
+	"ts/productImport/product"
 	"ts/productImport/reports"
 	"ts/productImport/tradeshiftImportHandler"
 	"ts/utils"
 )
 
+const stageName = "Product Validation Import stage"
+
 type ProductImportHandler struct {
-	config        *config.Config
-	mapHandler    mapping.MappingHandlerInterface
-	rulesHandler  *ontologyRead.RulesHandler
-	handler       adapters.HandlerInterface
-	validator     ontologyValidator.ValidatorInterface
-	reports       *reports.ReportsHandler
-	fileManager   *adapters.FileManager
-	importHandler *tradeshiftImportHandler.TradeshiftHandler
+	config           *config.Config
+	mapHandler       mapping.MappingHandlerInterface
+	rulesHandler     *ontologyRead.RulesHandler
+	productHandler   product.ProductHandlerInterface
+	attributeHandler attribute.AttributeHandlerInterface
+	handler          adapters.HandlerInterface
+	validator        ontologyValidator.ValidatorInterface
+	reports          *reports.ReportsHandler
+	fileManager      *adapters.FileManager
+	importHandler    *tradeshiftImportHandler.TradeshiftHandler
+	columnMap        *ColumnMap
+}
+
+type ColumnMap struct {
+	Category  string
+	ProductID string
+	Name      string
 }
 
 type Deps struct {
 	dig.In
-	Config        *config.Config
-	MapHandler    mapping.MappingHandlerInterface
-	RulesHandler  *ontologyRead.RulesHandler
-	Handler       adapters.HandlerInterface
-	Validator     ontologyValidator.ValidatorInterface
-	Reports       *reports.ReportsHandler
-	FileManager   *adapters.FileManager
-	ImportHandler *tradeshiftImportHandler.TradeshiftHandler
+	Config           *config.Config
+	MapHandler       mapping.MappingHandlerInterface
+	RulesHandler     *ontologyRead.RulesHandler
+	ProductHandler   product.ProductHandlerInterface
+	AttributeHandler attribute.AttributeHandlerInterface
+	Handler          adapters.HandlerInterface
+	Validator        ontologyValidator.ValidatorInterface
+	Reports          *reports.ReportsHandler
+	FileManager      *adapters.FileManager
+	ImportHandler    *tradeshiftImportHandler.TradeshiftHandler
 }
 
 func NewProductImportHandler(deps Deps) *ProductImportHandler {
+	m := deps.MapHandler.Parse()
 	return &ProductImportHandler{
-		config:        deps.Config,
-		mapHandler:    deps.MapHandler,
-		rulesHandler:  deps.RulesHandler,
-		handler:       deps.Handler,
-		validator:     deps.Validator,
-		reports:       deps.Reports,
-		fileManager:   deps.FileManager,
-		importHandler: deps.ImportHandler,
+		config:           deps.Config,
+		mapHandler:       deps.MapHandler,
+		rulesHandler:     deps.RulesHandler,
+		attributeHandler: deps.AttributeHandler,
+		productHandler:   deps.ProductHandler,
+		handler:          deps.Handler,
+		validator:        deps.Validator,
+		reports:          deps.Reports,
+		fileManager:      deps.FileManager,
+		importHandler:    deps.ImportHandler,
+		columnMap: &ColumnMap{
+			ProductID: m.ProductID,
+			Category:  m.Category,
+			Name:      m.Name,
+		},
 	}
 }
 
@@ -63,7 +86,7 @@ func (ph *ProductImportHandler) RunCSV() {
 	}
 
 	// mappings
-	columnMap := ph.mapHandler.Get() //Init(ph.config.ProductCatalog.MappingPath)
+	columnMap := ph.mapHandler.Get()
 
 	// feed
 	err = ph.processProducts(columnMap, rulesConfig)
@@ -134,53 +157,36 @@ func (ph *ProductImportHandler) processFeed(
 			log.Printf("ERROR COPYING THE '%v' FILE to the  '%v' folder", validationReportPath, ph.config.ProductCatalog.InProgressPath)
 		}
 	}
+
 	if isInitial {
 		if sourceFeedPath, er = adapters.MoveToPath(sourceFeedPath, ph.config.ProductCatalog.InProgressPath); er != nil {
 			log.Printf("ERROR COPYING THE '%v' FILE to the  '%v' folder", sourceFeedPath, ph.config.ProductCatalog.InProgressPath)
 		}
 	}
 
-	labels := ph.reports.Header
-	reportData := make([]*reports.Report, 0)
-	if validationReportPath != "" {
-		if _, err := os.Stat(validationReportPath); !os.IsNotExist(err) {
-			ph.handler.Init(ph.fileManager.GetFileType(validationReportPath))
-			reportDataSource := ph.handler.Parse(validationReportPath)
-			for _, line := range reportDataSource {
-				r := &reports.Report{
-					ProductId:    fmt.Sprintf("%v", line[labels.ProductId]),
-					Name:         fmt.Sprintf("%v", line[labels.Name]),
-					Category:     fmt.Sprintf("%v", line[labels.Category]),
-					CategoryName: fmt.Sprintf("%v", line[labels.CategoryName]),
-					AttrName:     fmt.Sprintf("%v", line[labels.AttrName]),
-					AttrValue:    fmt.Sprintf("%v", line[labels.AttrValue]),
-					UoM:          fmt.Sprintf("%v", line[labels.UoM]),
-					Errors:       nil,
-					Description:  fmt.Sprintf("%v", line[labels.Description]),
-					DataType:     fmt.Sprintf("%v", line[labels.DataType]),
-					IsMandatory:  fmt.Sprintf("%v", line[labels.IsMandatory]),
-					CodedVal:     fmt.Sprintf("%v", line[labels.CodedVal]),
-				}
-				reportData = append(reportData, r)
-			}
-		}
+	// fixed attributes
+	attributeReportData, err := ph.attributeHandler.InitAttributeData(validationReportPath)
+	if err != nil {
+		log.Printf("failed to upload attributes report %v: %v", validationReportPath, err)
 	}
 
 	// source
-	ph.handler.Init(ph.fileManager.GetFileType(sourceFeedPath))
-	parsedData := ph.handler.Parse(sourceFeedPath)
+	parsedData, err := ph.productHandler.InitSourceData(sourceFeedPath)
+	if err != nil {
+		log.Printf("failed to upload source data %v: %v", sourceFeedPath, err)
+	}
 
 	// validation feed
 	feed, hasErrors := ph.validator.Validate(struct {
-		Mapping map[string]string
-		Rules   *models.OntologyConfig
-		Data    []map[string]interface{}
-		Report  []*reports.Report
+		Mapping       map[string]string
+		Rules         *models.OntologyConfig
+		SourceData    []map[string]interface{}
+		AttributeData []*attribute.Attribute
 	}{
-		Mapping: columnMap,
-		Rules:   ruleConfig,
-		Data:    parsedData,
-		Report:  reportData,
+		Mapping:       columnMap,
+		Rules:         ruleConfig,
+		SourceData:    parsedData,
+		AttributeData: attributeReportData,
 	})
 
 	if !hasErrors {
@@ -236,8 +242,8 @@ func findReport(inProgressFile string, sources []string) string {
 }
 
 func cleanUpFailures(sourceFile string, folder string) {
-	reports := adapters.GetFiles(folder)
-	for _, source := range reports {
+	reportsList := adapters.GetFiles(folder)
+	for _, source := range reportsList {
 		del := findReport(sourceFile, []string{source})
 		if del != "" {
 			e := os.Remove(folder + "/" + del)

@@ -21,7 +21,7 @@ const (
 	initImportState              = "init"
 	completeImportState          = "complete"
 	completeWithErrorImportState = "complete_with_error"
-	identifier                   = "id"
+	identifier                   = "ID"
 	retriesDelay                 = 1 * time.Second
 )
 
