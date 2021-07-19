@@ -12,9 +12,11 @@ import (
 	"ts/offerImport/offerReader"
 	"ts/prepareImport"
 	"ts/productImport"
+	"ts/productImport/attribute"
 	"ts/productImport/mapping"
 	"ts/productImport/ontologyRead"
 	"ts/productImport/ontologyValidator"
+	"ts/productImport/product"
 	"ts/productImport/reports"
 	"ts/productImport/tradeshiftImportHandler"
 )
@@ -34,6 +36,8 @@ var diConfig = []entry{
 	{constructor: mapping.NewMappingHandler},
 	{constructor: ontologyRead.NewRulesHandler},
 	{constructor: offerReader.NewOfferReader},
+	{constructor: attribute.NewAttributeHandler},
+	{constructor: product.NewProductHandler},
 
 	{constructor: ontologyValidator.NewValidator},
 	{constructor: reports.NewReportsHandler},

@@ -66,7 +66,11 @@ func (r *ReportsHandler) buildSuccessMapRaw(source []map[string]interface{}, rep
 				product[categoryIndex] = attribute.Category
 			}
 
-			product[idIndex] = attribute.ProductId
+			if attribute.Name == "" {
+				product[idIndex] = fmt.Sprintf("%v", foundProduct[sourceColumnMap.ProductID])
+			} else {
+				product[idIndex] = attribute.ProductId
+			}
 
 			// fill fixed attribute value:
 			if i, ok := headerIndex[attribute.AttrName]; ok {
