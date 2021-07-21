@@ -67,7 +67,7 @@ func (i *ImportOfferHandler) ImportOffer(
 		return Failed, err
 	}
 	if isFound {
-		log.Print("offer \"%v\" was found", offerName)
+		log.Printf("offer \"%v\" was found", offerName)
 		return OfferFound, nil
 	}
 
