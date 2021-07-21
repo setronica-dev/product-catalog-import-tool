@@ -30,8 +30,9 @@ func (h *Adapter) Read(filePath string) ([][]string, error) {
 	if err != nil {
 		return nil, err
 	}
-	h.setHeader(result[0])
-	return result, nil
+	validResult := getValidRows(result)
+	h.setHeader(validResult[0])
+	return validResult, nil
 }
 
 func (h *Adapter) Parse(filePath string) ([]map[string]interface{}, error) {
@@ -49,4 +50,32 @@ func (h *Adapter) Write(filepath string, data [][]string) error {
 		return err
 	}
 	return nil
+}
+
+func isValidRow(row []string) bool {
+	keys := []string{
+		"HEADER_V3_START",
+		"HEADER_V3_START ",
+	}
+
+	if utils.IsEmptyRow(row) {
+		return false
+	}
+	for _, key := range keys {
+		if ok, _ := utils.InArray(key, row); ok {
+			return false
+		}
+	}
+	return true
+}
+
+func getValidRows(data [][]string) [][]string {
+	var res [][]string
+
+	for _, row := range data {
+		if isValidRow(row) {
+			res = append(res, row)
+		}
+	}
+	return res
 }
