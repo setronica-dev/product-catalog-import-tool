@@ -51,7 +51,6 @@ if [ -z "${DIR}" ]; then
     usage
 fi
 
-go test ./...
 go get ./...
 
 mkdir -p $DIR

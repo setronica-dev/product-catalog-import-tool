@@ -13,7 +13,8 @@ type ColumnMap struct {
 
 func (p *ProductHandler) GetCurrentHeader(row map[string]interface{}) *ColumnMap {
 	var res ColumnMap
-	columnMap := p.columnMap
+
+	columnMap := p.ColumnMap
 	for k, _ := range row {
 		key := fmt.Sprintf("%v", k)
 		switch utils.TrimAll(key) {

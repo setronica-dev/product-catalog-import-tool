@@ -2,6 +2,7 @@ package reports
 
 import (
 	"fmt"
+	productModels "ts/productImport/product"
 	"ts/utils"
 )
 
@@ -20,90 +21,70 @@ func (r *ReportsHandler) buildSuccessData(report []Report, source []map[string]i
 /**
 * transformation iteration
  */
-func (r *ReportsHandler) buildSuccessMapRaw(source []map[string]interface{}, reportItems []Report) [][]string {
+func (r *ReportsHandler) buildSuccessMapRaw(source []map[string]interface{}, reportAttrItems []Report) [][]string {
 
-	tsFormattedHeader, headerIndex := buildSuccessReportHeader(source, reportItems, r.ColumnMap)
+	tsFormattedHeader, headerIndex := buildSuccessReportHeader(source, reportAttrItems, r.ColumnMap)
 	// reset length
 	headerLength := len(tsFormattedHeader)
 
 	// build final report
 	report := make([][]string, 1)
 	report[0] = tsFormattedHeader
-	product := make([]string, 0)
-	productId := ""
 
-	sourceColumnMap := getSourceKeys(source[0], r.ColumnMap)
-	for _, attribute := range reportItems {
-		if productId != attribute.ProductId {
-			productId = attribute.ProductId
-			//if product does not exist in the report yet
-			if len(product) > 0 {
-				report = append(report, product)
-			}
+	// get parsable products list
+	sourceColumnMap := r.productHandler.GetCurrentHeader(source[0])
+	parsedSourceProducts := productModels.NewProducts(source, sourceColumnMap)
 
-			// first feel data from source file:
-			product = make([]string, headerLength)
+	for _, sourceProduct := range parsedSourceProducts.GetProducts() {
+		reportItem := make([]string, headerLength)
+		reportItem[idIndex] = sourceProduct.ID
+		reportItem[categoryIndex] = sourceProduct.Category
 
-			// - find product for attribute
-			var foundProduct map[string]interface{}
-			for _, sourceItem := range source {
-				if sourceItem[sourceColumnMap.ProductID] == attribute.ProductId {
-					foundProduct = sourceItem
-					break
+		productAttrs := findAttributesByProduct(sourceProduct.ID, reportAttrItems)
+
+		for attrName, attrValue := range sourceProduct.Attributes {
+			if i, ok := headerIndex[attrName]; ok {
+				attr := findAttributeByName(attrName, productAttrs)
+				if attr != nil {
+					reportItem[i] = fmt.Sprintf("%v", attr.AttrValue)
+				} else {
+					reportItem[i] = fmt.Sprintf("%v", attrValue)
 				}
 			}
-
-			// - fill attributes
-			for itemAttr, attrValue := range foundProduct {
-				if i, ok := headerIndex[itemAttr]; ok {
-					product[i] = fmt.Sprintf("%v", attrValue)
+		}
+		for _, productAttrItem := range productAttrs {
+			if i, ok := headerIndex[productAttrItem.AttrName]; ok {
+				reportItem[i] = fmt.Sprintf("%v", productAttrItem.AttrValue)
+				if productAttrItem.Category != "" {
+					reportItem[categoryIndex] = productAttrItem.Category
 				}
 			}
-
-			// fill main info for product:
-			if attribute.Category == "" {
-				product[categoryIndex] = fmt.Sprintf("%v", foundProduct[sourceColumnMap.Category])
-			} else {
-				product[categoryIndex] = attribute.Category
-			}
-
-			if attribute.Name == "" {
-				product[idIndex] = fmt.Sprintf("%v", foundProduct[sourceColumnMap.ProductID])
-			} else {
-				product[idIndex] = attribute.ProductId
-			}
-
-			// fill fixed attribute value:
-			if i, ok := headerIndex[attribute.AttrName]; ok {
-				product[i] = attribute.AttrValue
-			}
-		} else {
-			if i, ok := headerIndex[attribute.AttrName]; ok {
-				product[i] = attribute.AttrValue
-			}
+		}
+		if len(reportItem) > 0 {
+			report = append(report, reportItem)
 		}
 	}
 
-	if len(product) > 0 {
-		report = append(report, product)
-	}
 	return report
 }
 
-func getSourceKeys(sourceRow map[string]interface{}, columnMap *ColumnMap) *ColumnMap {
-	var sourceColumnMap ColumnMap
-	for k, _ := range sourceRow {
-		key := fmt.Sprintf("%v", k)
-		switch utils.TrimAll(key) {
-		case utils.TrimAll(columnMap.Category):
-			sourceColumnMap.Category = key
-		case utils.TrimAll(columnMap.ProductID):
-			sourceColumnMap.ProductID = key
-		case utils.TrimAll(columnMap.Name):
-			sourceColumnMap.Name = key
+func findAttributesByProduct(productID string, attributes []Report) []Report {
+	res := make([]Report, 0)
+	for _, attr := range attributes {
+		if attr.ProductId == productID {
+			res = append(res, attr)
 		}
 	}
-	return &sourceColumnMap
+	return res
+}
+
+func findAttributeByName(attrName string, attributes []Report) *Report {
+	for _, attr := range attributes {
+		if attr.AttrName == attrName {
+			return &attr
+		}
+	}
+	return nil
 }
 
 func buildSuccessReportHeader(source []map[string]interface{}, reportItems []Report, columnMap *ColumnMap) ([]string, map[string]int64) {
