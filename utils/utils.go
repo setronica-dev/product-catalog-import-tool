@@ -130,7 +130,9 @@ func RowsToMapRows(data [][]string, header []string) ([]map[string]interface{}, 
 			var singleMap = make(map[string]interface{})
 			for colCounter, col := range row {
 				i := header[colCounter]
-				singleMap[i] = col
+				if i != "" {
+					singleMap[i] = col
+				}
 			}
 			if len(singleMap) > 0 {
 				parsedData = append(parsedData, singleMap)
