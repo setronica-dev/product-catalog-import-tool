@@ -42,6 +42,8 @@ func (r *ReportsHandler) buildSuccessMapRaw(source []map[string]interface{}, rep
 			}
 
 			// first feel data from source file:
+			product = make([]string, headerLength)
+
 			// - find product for attribute
 			var foundProduct map[string]interface{}
 			for _, sourceItem := range source {
@@ -52,7 +54,6 @@ func (r *ReportsHandler) buildSuccessMapRaw(source []map[string]interface{}, rep
 			}
 
 			// - fill attributes
-			product = make([]string, headerLength)
 			for itemAttr, attrValue := range foundProduct {
 				if i, ok := headerIndex[itemAttr]; ok {
 					product[i] = fmt.Sprintf("%v", attrValue)

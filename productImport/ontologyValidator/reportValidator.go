@@ -22,10 +22,17 @@ func (v *Validator) validateReport(data struct {
 		category := product.Category
 		if category == "" {
 			feed = append(feed, reports.Report{
-				ProductId: product.ProductId,
-				Name:      fmt.Sprintf("%v", product.Name),
-				Category:  category,
-				Errors:    []string{"The product category is not specified. The product can not be validated."},
+				ProductId:   product.ProductId,
+				Name:        fmt.Sprintf("%v", product.Name),
+				Category:    category,
+				AttrName:    product.AttrName,
+				AttrValue:   product.AttrValue,
+				UoM:         product.UoM,
+				DataType:    fmt.Sprintf("%v", product.DataType),
+				Description: product.Description,
+				IsMandatory: product.IsMandatory,
+				CodedVal:    product.CodedVal,
+				Errors:      []string{"The product category is not specified. The product can not be validated."},
 			})
 		} else {
 			if ruleCategory, ok := data.Rules.Categories[category]; ok {
@@ -95,10 +102,17 @@ func (v *Validator) validateReport(data struct {
 				}
 			} else {
 				feed = append(feed, reports.Report{
-					ProductId: product.ProductId,
-					Name:      fmt.Sprintf("%v", product.Name),
-					Category:  category,
-					Errors:    []string{"The product category did not match any UNSPSC category from the ontology. The product can not be validated."},
+					ProductId:   product.ProductId,
+					Name:        fmt.Sprintf("%v", product.Name),
+					Category:    category,
+					AttrName:    product.AttrName,
+					AttrValue:   product.AttrValue,
+					UoM:         product.UoM,
+					DataType:    fmt.Sprintf("%v", product.DataType),
+					Description: product.Description,
+					IsMandatory: product.IsMandatory,
+					CodedVal:    product.CodedVal,
+					Errors:      []string{"The product category did not match any UNSPSC category from the ontology. The product can not be validated."},
 				})
 			}
 		}
