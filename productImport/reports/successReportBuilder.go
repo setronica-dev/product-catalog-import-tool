@@ -2,7 +2,6 @@ package reports
 
 import (
 	"fmt"
-	productModels "ts/productImport/product"
 	"ts/utils"
 )
 
@@ -32,8 +31,7 @@ func (r *ReportsHandler) buildSuccessMapRaw(source []map[string]interface{}, rep
 	report[0] = tsFormattedHeader
 
 	// get parsable products list
-	sourceColumnMap := r.productHandler.GetCurrentHeader(source[0])
-	parsedSourceProducts := productModels.NewProducts(source, sourceColumnMap)
+	parsedSourceProducts := r.productHandler.InitParsedSourceData(source)
 
 	for _, sourceProduct := range parsedSourceProducts.GetProducts() {
 		reportItem := make([]string, headerLength)

@@ -6,20 +6,20 @@ import (
 	"ts/productImport/attribute"
 	"ts/productImport/ontologyRead/models"
 	"ts/productImport/ontologyRead/rawOntology"
+	"ts/productImport/product"
 	"ts/productImport/reports"
 	"ts/utils"
 )
 
-func (v *Validator) validateReport(data struct {
-	Mapping       map[string]string
-	Rules         *models.OntologyConfig
-	SourceData    []map[string]interface{}
-	AttributeData []*attribute.Attribute
-}) ([]reports.Report, bool) {
+func (v *Validator) validateReport(
+	rulesData *models.OntologyConfig,
+	productData *product.Products,
+	attributeData []*attribute.Attribute) ([]reports.Report, bool) {
 	feed := make([]reports.Report, 0)
 	isError := false
-	for _, reportAttribute := range data.AttributeData {
-		category := reportAttribute.Category
+
+	for _, reportAttribute := range attributeData {
+		category := getProductCategory(reportAttribute.ProductId, productData, reportAttribute)
 		if category == "" {
 			feed = append(feed, reports.Report{
 				ProductId:   reportAttribute.ProductId,
@@ -35,9 +35,8 @@ func (v *Validator) validateReport(data struct {
 				Errors:      []string{"The attribute category is not specified. The attribute can not be validated."},
 			})
 		} else {
-			if ruleCategory, ok := data.Rules.Categories[category]; ok {
+			if ruleCategory, ok := rulesData.Categories[category]; ok {
 				for _, attr := range ruleCategory.Attributes {
-
 					message := make([]string, 0)
 					if reportAttribute.AttrName == "" || (reportAttribute.AttrName != "" && reportAttribute.AttrName == attr.Name) {
 						if reportAttribute.AttrValue != "" {
@@ -118,4 +117,12 @@ func (v *Validator) validateReport(data struct {
 		}
 	}
 	return feed, isError
+}
+
+func getProductCategory(productID string, products *product.Products, reportAttribute *attribute.Attribute) string {
+	targetProduct := products.FindProductByID(productID)
+	if targetProduct != nil {
+		return targetProduct.Category
+	}
+	return reportAttribute.Category
 }

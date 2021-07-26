@@ -8,6 +8,7 @@ import (
 
 type ProductHandlerInterface interface {
 	InitSourceData(sourceFeedPath string) ([]map[string]interface{}, error)
+	InitParsedSourceData(sourceData []map[string]interface{}) *Products
 	GetCurrentHeader(row map[string]interface{}) *ColumnMap
 }
 
