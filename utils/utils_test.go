@@ -52,6 +52,30 @@ func TestRowsToMapRows(t *testing.T) {
 			wantErr: false,
 		},
 		{
+			name: "positive: empty cell in header should not be considered as column",
+			args: args{
+				data: [][]string{
+					{},
+					{
+						"test1",
+						"test2",
+						"test3",
+					},
+				},
+				header: []string{
+					"col1",
+					"",
+					"col3",
+				},
+			},
+			want: []map[string]interface{}{
+				{
+					"col1":  "test1",
+					"col3": "test3",
+				},
+			},
+		},
+		{
 			name: "negative: data without defined header can not be parsed",
 			args: args{
 				data: [][]string{

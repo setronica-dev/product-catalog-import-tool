@@ -9,7 +9,7 @@ import (
 type ProductHandler struct {
 	fileManager *adapters.FileManager
 	handler     adapters.HandlerInterface
-	columnMap *ColumnMap
+	ColumnMap   *ColumnMap
 }
 
 func NewProductHandler(deps Deps) ProductHandlerInterface {
@@ -17,7 +17,7 @@ func NewProductHandler(deps Deps) ProductHandlerInterface {
 	return &ProductHandler{
 		fileManager: deps.FileManager,
 		handler:     deps.Handler,
-		columnMap: &ColumnMap{
+		ColumnMap: &ColumnMap{
 			ProductID: m.ProductID,
 			Category: m.Category,
 			Name: m.Name,

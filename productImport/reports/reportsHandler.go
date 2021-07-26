@@ -5,6 +5,7 @@ import (
 	"strings"
 	"ts/adapters"
 	"ts/productImport/mapping"
+	"ts/productImport/product"
 )
 
 const (
@@ -19,17 +20,19 @@ type ColumnMap struct {
 }
 
 type ReportsHandler struct {
-	Handler     adapters.HandlerInterface
-	Header      *ReportLabels
-	ColumnMap   *ColumnMap
-	FileManager *adapters.FileManager
+	Handler        adapters.HandlerInterface
+	Header         *ReportLabels
+	ColumnMap      *ColumnMap
+	FileManager    *adapters.FileManager
+	productHandler product.ProductHandlerInterface
 }
 
 type Deps struct {
 	dig.In
-	Handler     adapters.HandlerInterface
-	FileManager *adapters.FileManager
-	Mapping     mapping.MappingHandlerInterface
+	Handler        adapters.HandlerInterface
+	FileManager    *adapters.FileManager
+	Mapping        mapping.MappingHandlerInterface
+	ProductHandler product.ProductHandlerInterface
 }
 
 func NewReportsHandler(deps Deps) *ReportsHandler {
@@ -38,8 +41,9 @@ func NewReportsHandler(deps Deps) *ReportsHandler {
 	m := deps.Mapping.Parse()
 
 	return &ReportsHandler{
-		Handler:     h,
-		FileManager: deps.FileManager,
+		Handler:        h,
+		FileManager:    deps.FileManager,
+		productHandler: deps.ProductHandler,
 		ColumnMap: &ColumnMap{
 			Category:  m.Category,
 			ProductID: m.ProductID,

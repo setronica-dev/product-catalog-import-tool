@@ -64,6 +64,7 @@ func TestProductHandler_GetCurrentHeader(t *testing.T) {
 		args   args
 		want   *ColumnMap
 	}{
+	// tests unstable, should be used only for manual run
 		{
 			name: "positive: should be selected compatible with mapped column names from source product data",
 			fields: fields{
@@ -115,7 +116,7 @@ func TestProductHandler_GetCurrentHeader(t *testing.T) {
 			p := &ProductHandler{
 				fileManager: tt.fields.fileManager,
 				handler:     tt.fields.handler,
-				columnMap:   tt.fields.columnMap,
+				ColumnMap:   tt.fields.columnMap,
 			}
 			if got := p.GetCurrentHeader(tt.args.row); !reflect.DeepEqual(got, tt.want) {
 				t.Errorf("GetCurrentHeader() = %v, want %v", got, tt.want)

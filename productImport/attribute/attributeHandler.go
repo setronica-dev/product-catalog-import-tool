@@ -60,20 +60,41 @@ func (ah *AttributeHandler) parseData(reportDataSource []map[string]interface{},
 
 	for _, line := range reportDataSource {
 		if !utils.IsEmptyMap(line) {
-			r := &Attribute{
-				ProductId:    fmt.Sprintf("%v", line[currentLabels.ProductId]),
-				Name:         fmt.Sprintf("%v", line[currentLabels.Name]),
-				Category:     fmt.Sprintf("%v", line[currentLabels.Category]),
-				CategoryName: fmt.Sprintf("%v", line[currentLabels.CategoryName]),
-				AttrName:     fmt.Sprintf("%v", line[currentLabels.AttrName]),
-				AttrValue:    fmt.Sprintf("%v", line[currentLabels.AttrValue]),
-				UoM:          fmt.Sprintf("%v", line[currentLabels.UoM]),
-				Description:  fmt.Sprintf("%v", line[currentLabels.Description]),
-				DataType:     fmt.Sprintf("%v", line[currentLabels.DataType]),
-				IsMandatory:  fmt.Sprintf("%v", line[currentLabels.IsMandatory]),
-				CodedVal:     fmt.Sprintf("%v", line[currentLabels.CodedVal]),
+			r := Attribute{
+				ProductId: fmt.Sprintf("%v", line[currentLabels.ProductId]),
 			}
-			reportData = append(reportData, r)
+			if line[currentLabels.Name] != nil {
+				r.Name = fmt.Sprintf("%v", line[currentLabels.Name])
+			}
+			if line[currentLabels.Category] != nil {
+				r.Category = fmt.Sprintf("%v", line[currentLabels.Category])
+			}
+			if line[currentLabels.CategoryName] != nil {
+				r.CategoryName = fmt.Sprintf("%v", line[currentLabels.CategoryName])
+			}
+			if line[currentLabels.AttrName] != nil {
+				r.AttrName = fmt.Sprintf("%v", line[currentLabels.AttrName])
+			}
+			if line[currentLabels.AttrValue] != nil {
+				r.AttrValue = fmt.Sprintf("%v", line[currentLabels.AttrValue])
+			}
+			if line[currentLabels.UoM] != "" {
+				r.UoM = fmt.Sprintf("%v", line[currentLabels.UoM])
+			}
+			if line[currentLabels.Description] != "" {
+				r.Description = fmt.Sprintf("%v", line[currentLabels.Description])
+			}
+			if line[currentLabels.DataType] != "" {
+				r.DataType = fmt.Sprintf("%v", line[currentLabels.DataType])
+			}
+			if line[currentLabels.IsMandatory] != "" {
+				r.IsMandatory = fmt.Sprintf("%v", line[currentLabels.IsMandatory])
+			}
+			if line[currentLabels.CodedVal] != "" {
+				r.CodedVal = fmt.Sprintf("%v", line[currentLabels.CodedVal])
+			}
+
+			reportData = append(reportData, &r)
 		}
 	}
 	return reportData

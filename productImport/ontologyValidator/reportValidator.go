@@ -18,32 +18,32 @@ func (v *Validator) validateReport(data struct {
 }) ([]reports.Report, bool) {
 	feed := make([]reports.Report, 0)
 	isError := false
-	for _, product := range data.AttributeData {
-		category := product.Category
+	for _, reportAttribute := range data.AttributeData {
+		category := reportAttribute.Category
 		if category == "" {
 			feed = append(feed, reports.Report{
-				ProductId:   product.ProductId,
-				Name:        fmt.Sprintf("%v", product.Name),
+				ProductId:   reportAttribute.ProductId,
+				Name:        fmt.Sprintf("%v", reportAttribute.Name),
 				Category:    category,
-				AttrName:    product.AttrName,
-				AttrValue:   product.AttrValue,
-				UoM:         product.UoM,
-				DataType:    fmt.Sprintf("%v", product.DataType),
-				Description: product.Description,
-				IsMandatory: product.IsMandatory,
-				CodedVal:    product.CodedVal,
-				Errors:      []string{"The product category is not specified. The product can not be validated."},
+				AttrName:    reportAttribute.AttrName,
+				AttrValue:   reportAttribute.AttrValue,
+				UoM:         reportAttribute.UoM,
+				DataType:    fmt.Sprintf("%v", reportAttribute.DataType),
+				Description: reportAttribute.Description,
+				IsMandatory: reportAttribute.IsMandatory,
+				CodedVal:    reportAttribute.CodedVal,
+				Errors:      []string{"The attribute category is not specified. The attribute can not be validated."},
 			})
 		} else {
 			if ruleCategory, ok := data.Rules.Categories[category]; ok {
 				for _, attr := range ruleCategory.Attributes {
 
 					message := make([]string, 0)
-					if product.AttrName == "" || (product.AttrName != "" && product.AttrName == attr.Name) {
-						if product.AttrValue != "" {
+					if reportAttribute.AttrName == "" || (reportAttribute.AttrName != "" && reportAttribute.AttrName == attr.Name) {
+						if reportAttribute.AttrValue != "" {
 							//attrVal check type
 							if attr.DataType == rawOntology.FloatType || attr.DataType == rawOntology.NumberType {
-								_, err := utils.GetFloat(product.AttrValue)
+								_, err := utils.GetFloat(reportAttribute.AttrValue)
 								if err != nil {
 									message = append(message, "The attribute value should be a "+
 										strings.ToLower(fmt.Sprintf("%v.", attr.DataType)))
@@ -51,7 +51,7 @@ func (v *Validator) validateReport(data struct {
 								}
 							} else if attr.DataType == rawOntology.CodedType {
 								values := strings.Split(attr.CodedValue, ",")
-								if exists, _ := utils.InArray(product.AttrValue, values); !exists {
+								if exists, _ := utils.InArray(reportAttribute.AttrValue, values); !exists {
 									message = append(
 										message,
 										"The provided attribute value doesn't match with any "+
@@ -60,11 +60,11 @@ func (v *Validator) validateReport(data struct {
 								}
 							}
 
-							if attr.MaxCharacterLength > 0 && len(product.AttrValue) > attr.MaxCharacterLength {
+							if attr.MaxCharacterLength > 0 && len(reportAttribute.AttrValue) > attr.MaxCharacterLength {
 								message = append(
 									message,
 									"The attribute has a too long value (length: %v, max length: %v ).",
-									fmt.Sprintf("%v", len(product.AttrValue)),
+									fmt.Sprintf("%v", len(reportAttribute.AttrValue)),
 									fmt.Sprintf("%v", attr.MaxCharacterLength))
 								isError = true
 							}
@@ -81,38 +81,38 @@ func (v *Validator) validateReport(data struct {
 						}
 
 						d := reports.Report{
-							ProductId:    product.ProductId,
-							Name:         product.Name,
+							ProductId:    reportAttribute.ProductId,
+							Name:         reportAttribute.Name,
 							Category:     ruleCategory.UNSPSC,
 							CategoryName: ruleCategory.Name,
 							AttrName:     attr.Name,
-							AttrValue:    product.AttrValue,
+							AttrValue:    reportAttribute.AttrValue,
 							UoM:          attr.MeasurementUoM,
 							Errors:       message,
 							DataType:     fmt.Sprintf("%v", attr.DataType),
-							Description:  product.Description,
-							IsMandatory:  product.IsMandatory,
-							CodedVal:     product.CodedVal,
+							Description:  reportAttribute.Description,
+							IsMandatory:  reportAttribute.IsMandatory,
+							CodedVal:     reportAttribute.CodedVal,
 						}
 						feed = append(feed, d)
-						if product.AttrName != "" {
+						if reportAttribute.AttrName != "" {
 							break
 						}
 					}
 				}
 			} else {
 				feed = append(feed, reports.Report{
-					ProductId:   product.ProductId,
-					Name:        fmt.Sprintf("%v", product.Name),
+					ProductId:   reportAttribute.ProductId,
+					Name:        fmt.Sprintf("%v", reportAttribute.Name),
 					Category:    category,
-					AttrName:    product.AttrName,
-					AttrValue:   product.AttrValue,
-					UoM:         product.UoM,
-					DataType:    fmt.Sprintf("%v", product.DataType),
-					Description: product.Description,
-					IsMandatory: product.IsMandatory,
-					CodedVal:    product.CodedVal,
-					Errors:      []string{"The product category did not match any UNSPSC category from the ontology. The product can not be validated."},
+					AttrName:    reportAttribute.AttrName,
+					AttrValue:   reportAttribute.AttrValue,
+					UoM:         reportAttribute.UoM,
+					DataType:    fmt.Sprintf("%v", reportAttribute.DataType),
+					Description: reportAttribute.Description,
+					IsMandatory: reportAttribute.IsMandatory,
+					CodedVal:    reportAttribute.CodedVal,
+					Errors:      []string{"The attribute category did not match any UNSPSC category from the ontology. The attribute can not be validated."},
 				})
 			}
 		}
