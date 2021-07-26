@@ -50,3 +50,15 @@ func parseProduct(rawProduct map[string]interface{}, columnMap *ColumnMap) *Prod
 	product.Attributes = rawAttributes
 	return &product
 }
+
+func (ps *Products) FindProductByID(productID string) *Product {
+	if productID == "" {
+		return nil
+	}
+	for _, item := range ps.data {
+		if item.ID == productID {
+			return item
+		}
+	}
+	return nil
+}

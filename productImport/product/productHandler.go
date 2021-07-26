@@ -13,14 +13,14 @@ type ProductHandler struct {
 }
 
 func NewProductHandler(deps Deps) ProductHandlerInterface {
-	m:=deps.Mapping.Parse()
+	m := deps.Mapping.Parse()
 	return &ProductHandler{
 		fileManager: deps.FileManager,
 		handler:     deps.Handler,
 		ColumnMap: &ColumnMap{
 			ProductID: m.ProductID,
-			Category: m.Category,
-			Name: m.Name,
+			Category:  m.Category,
+			Name:      m.Name,
 		},
 	}
 }
@@ -52,4 +52,9 @@ func parse(sourceData []map[string]interface{}) []map[string]interface{} {
 		}
 	}
 	return res
+}
+
+func (ph *ProductHandler) InitParsedSourceData(sourceData []map[string]interface{}) *Products {
+	currentProductHeader := ph.GetCurrentHeader(sourceData[0])
+	return NewProducts(sourceData, currentProductHeader)
 }

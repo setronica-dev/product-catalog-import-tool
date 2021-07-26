@@ -37,8 +37,10 @@ func (v *Validator) Validate(data struct {
 	AttributeData []*attribute.Attribute
 }) ([]reports.Report, bool) {
 
+	parsedProducts := v.productHandler.InitParsedSourceData(data.SourceData)
+
 	if data.AttributeData != nil && len(data.AttributeData) > 0 {
-		report, isErr := v.validateReport(data)
+		report, isErr := v.validateReport(data.Rules, parsedProducts, data.AttributeData)
 		return report, isErr
 	}
 
