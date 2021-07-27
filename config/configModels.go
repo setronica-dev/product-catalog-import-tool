@@ -30,6 +30,13 @@ type OfferCatalogConfig struct {
 	SentPath   string
 }
 
+type OfferItemCatalogConfig struct {
+	SourcePath        string
+	ReportPath        string
+	SentPath          string
+	SuccessResultPath string
+}
+
 type CommonConfig struct {
 	SourcePath string
 	SentPath   string
@@ -37,7 +44,13 @@ type CommonConfig struct {
 }
 
 type SheetConfig struct {
-	Products string
-	Offers   string
-	Failures string
+	Products   string
+	Offers     string
+	Failures   string
+	OfferItems *SheetParamsConfig
+}
+
+type SheetParamsConfig struct {
+	Name            string
+	HeaderRowsCount int
 }
