@@ -13,7 +13,6 @@ func Read(filePath string, sheetName string) ([][]string, error) {
 	}
 
 	rows := getSheetData(xlFile.Sheets, sheetName)
-
 	return rows, nil
 }
 
@@ -34,13 +33,20 @@ func openFile(filePath string) (*xlsx.File, error) {
 func getSheetData(sheets []*xlsx.Sheet, name string) [][]string {
 	rows := make([][]string, 0, 0)
 
-	for _, sheet := range sheets {
-		if utils.TrimAll(sheet.Name) == utils.TrimAll(name) {
-			rows = processSheetData(sheet)
-			break
-		}
+	sheet := findSheetByName(sheets, name)
+	if sheet != nil {
+		rows = processSheetData(sheet)
 	}
 	return rows
+}
+
+func findSheetByName(sheets []*xlsx.Sheet, name string) *xlsx.Sheet {
+	for _, sheet := range sheets {
+		if utils.TrimAll(sheet.Name) == utils.TrimAll(name) {
+			return sheet
+		}
+	}
+	return nil
 }
 
 func processSheetData(sheet *xlsx.Sheet) [][]string {
