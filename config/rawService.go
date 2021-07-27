@@ -1,11 +1,12 @@
 package config
 
 type RawServiceConfig struct {
-	Port                 uint16                  `yaml:"port"`
-	ProductCatalogConfig RawProductCatalogConfig `yaml:"product" validate:"required"`
-	OfferCatalogConfig   RawOfferCatalogConfig   `yaml:"offer" validate:"required"`
-	CommonConfig         RawCommonCatalogConfig  `yaml:"common" validate:"required"`
-	TradeshiftAPIConfig  RawTradeshiftAPIConfig  `yaml:"tradeshift_api" validate:"required"`
+	Port                   uint16                    `yaml:"port"`
+	ProductCatalogConfig   RawProductCatalogConfig   `yaml:"product" validate:"required"`
+	OfferCatalogConfig     RawOfferCatalogConfig     `yaml:"offer" validate:"required"`
+	OfferItemCatalogConfig RawOfferItemCatalogConfig `yaml:"offer_item" validate:"required"`
+	CommonConfig           RawCommonCatalogConfig    `yaml:"common" validate:"required"`
+	TradeshiftAPIConfig    RawTradeshiftAPIConfig    `yaml:"tradeshift_api" validate:"required"`
 }
 
 type RawProductCatalogConfig struct {
@@ -25,6 +26,12 @@ type RawOfferCatalogConfig struct {
 	SentPath   string `yaml:"sent"`
 }
 
+type RawOfferItemCatalogConfig struct {
+	SourcePath string `yaml:"source"`
+	ReportPath string `yaml:"report"`
+	SentPath   string `yaml:"sent"`
+}
+
 type RawCommonCatalogConfig struct {
 	SourcePath string         `yaml:"source"`
 	SentPath   string         `yaml:"sent"`
@@ -32,9 +39,15 @@ type RawCommonCatalogConfig struct {
 }
 
 type RawSheetConfig struct {
-	Products string `yaml:"products"`
-	Offers   string `yaml:"offers"`
-	Failures string `yaml:"failures"`
+	Products   string               `yaml:"products"`
+	Offers     string               `yaml:"offers"`
+	OfferItems RawSheetParamsConfig `yaml:"offer_items"`
+	Failures   string               `yaml:"failures"`
+}
+
+type RawSheetParamsConfig struct {
+	Name               string `yaml:"name"`
+	HeaderColumnsCount int    `yaml:"header_columns_count"`
 }
 
 type RawTradeshiftAPIConfig struct {
@@ -73,15 +86,31 @@ func (c *RawOfferCatalogConfig) ToConfig() *OfferCatalogConfig {
 	}
 }
 
+func (c *RawOfferItemCatalogConfig) ToConfig() *OfferItemCatalogConfig {
+	return &OfferItemCatalogConfig{
+		SourcePath: c.SourcePath,
+		ReportPath: c.ReportPath,
+		SentPath:   c.SentPath,
+	}
+}
+
 func (c *RawCommonCatalogConfig) ToConfig() *CommonConfig {
 	return &CommonConfig{
 		SourcePath: c.SourcePath,
 		SentPath:   c.SentPath,
 		Sheet: &SheetConfig{
-			Products: c.Sheet.Products,
-			Offers:   c.Sheet.Offers,
-			Failures: c.Sheet.Failures,
+			Products:   c.Sheet.Products,
+			Offers:     c.Sheet.Offers,
+			Failures:   c.Sheet.Failures,
+			OfferItems: c.Sheet.OfferItems.ToConfig(),
 		},
+	}
+}
+
+func (c *RawSheetParamsConfig) ToConfig() *SheetParamsConfig {
+	return &SheetParamsConfig{
+		Name:            c.Name,
+		HeaderRowsCount: c.HeaderColumnsCount,
 	}
 }
 
