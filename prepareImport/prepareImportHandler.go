@@ -11,11 +11,12 @@ import (
 )
 
 type Handler struct {
-	sourcePath        string
-	sentPath          string
-	productConverter  *XLSXSheetToCSVConverter
-	failuresConverter *XLSXSheetToCSVConverter
-	offerConverter    *XLSXSheetToCSVConverter
+	sourcePath         string
+	sentPath           string
+	productConverter   *XLSXSheetToCSVConverter
+	failuresConverter  *XLSXSheetToCSVConverter
+	offerConverter     *XLSXSheetToCSVConverter
+	offerItemConverter *XLSXSheetToCSVConverter
 }
 
 type Deps struct {
@@ -31,15 +32,23 @@ func NewPrepareImportHandler(deps Deps) *Handler {
 		sentPath:   commonConf.SentPath,
 		productConverter: NewXLSXSheetToCSVConverter(
 			commonConf.Sheet.Products,
+			0,
 			conf.ProductCatalog.InProgressPath,
 			""),
 		failuresConverter: NewXLSXSheetToCSVConverter(
 			commonConf.Sheet.Failures,
+			0,
 			conf.ProductCatalog.SourcePath,
 			"-failures"),
 		offerConverter: NewXLSXSheetToCSVConverter(
 			commonConf.Sheet.Offers,
+			0,
 			conf.OfferCatalog.SourcePath,
+			""),
+		offerItemConverter: NewXLSXSheetToCSVConverter(
+			commonConf.Sheet.OfferItems.Name,
+			commonConf.Sheet.OfferItems.HeaderRowsCount,
+			conf.OfferItemCatalog.SourcePath,
 			""),
 	}
 }
@@ -93,6 +102,11 @@ func (h *Handler) convertSheetsData(filePath string) error {
 	err = h.failuresConverter.Convert(filePath)
 	if err != nil {
 		return fmt.Errorf("failed to convert Attributes: %v", err)
+	}
+
+	err = h.offerItemConverter.Convert(filePath)
+	if err != nil {
+		return fmt.Errorf("failed to convert Offer Items: %v", err)
 	}
 	return nil
 }
