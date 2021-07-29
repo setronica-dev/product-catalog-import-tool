@@ -11,6 +11,8 @@ type TradeshiftAPIConfig struct {
 	Token          string
 	TokenSecret    string
 	TenantId       string
+	Currency       string
+	FileLocale     string
 }
 
 type ProductCatalogConfig struct {
@@ -32,9 +34,9 @@ type OfferCatalogConfig struct {
 
 type OfferItemCatalogConfig struct {
 	SourcePath        string
+	SuccessResultPath string
 	ReportPath        string
 	SentPath          string
-	SuccessResultPath string
 }
 
 type CommonConfig struct {

@@ -10,6 +10,8 @@ import (
 	"ts/offerImport"
 	"ts/offerImport/importHandler"
 	"ts/offerImport/offerReader"
+	"ts/offerItemImport"
+	"ts/outwardImport/importToTradeshift"
 	"ts/prepareImport"
 	"ts/productImport"
 	"ts/productImport/attribute"
@@ -46,10 +48,12 @@ var diConfig = []entry{
 	{constructor: tradeshiftAPI.NewTradeshiftAPI},
 	{constructor: tradeshiftImportHandler.NewTradeshiftHandler},
 	{constructor: importHandler.NewImportOfferHandler},
+	{constructor: importToTradeshift.NewImportToTradeshift},
 
 	{constructor: prepareImport.NewPrepareImportHandler},
 	{constructor: productImport.NewProductImportHandler},
 	{constructor: offerImport.NewOfferImportHandler},
+	{constructor: offerItemImport.NewOfferItemImportHandler},
 }
 
 func BuildContainer() *dig.Container {
