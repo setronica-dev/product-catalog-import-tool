@@ -39,7 +39,7 @@ func (t *TradeshiftAPI) UploadFile(filePath string) (map[string]interface{}, err
 	return r, err
 }
 
-func (t *TradeshiftAPI) RunImportAction(fileID string) (string, error) {
+func (t *TradeshiftAPI) RunImportAction(fileID string, currency string, fileLocale string) (string, error) {
 	method := fmt.Sprintf("/product-engine/supplier/supplier/v1/product-import/files/%v/actions/import-products", url.QueryEscape(fileID))
 	resp, err := t.Client.Post(
 		method,
@@ -47,11 +47,11 @@ func (t *TradeshiftAPI) RunImportAction(fileID string) (string, error) {
 		[]rest.UrlParam{
 			{
 				Key:   "currency",
-				Value: "USD",
+				Value: currency,
 			},
 			{
 				Key:   "fileLocale",
-				Value: "en_US",
+				Value: fileLocale,
 			},
 		})
 	if err != nil {
