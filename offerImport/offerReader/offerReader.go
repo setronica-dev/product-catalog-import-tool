@@ -13,8 +13,7 @@ import (
 const dateLayout = "2006-01-02"
 
 type OfferReader struct {
-	fileManager *adapters.FileManager
-	reader      adapters.HandlerInterface
+	reader adapters.HandlerInterface
 }
 
 type RawOffer struct {
@@ -34,13 +33,12 @@ type Deps struct {
 
 func NewOfferReader(deps Deps) *OfferReader {
 	return &OfferReader{
-		reader:      deps.Reader,
-		fileManager: deps.FileManager,
+		reader: deps.Reader,
 	}
 }
 
 func (o *OfferReader) UploadOffers(path string) []RawOffer {
-	ext := o.fileManager.GetFileType(path)
+	ext := adapters.GetFileType(path)
 	o.reader.Init(ext)
 	parsedRaws := o.reader.Parse(path)
 	actualHeader := o.reader.GetHeader()

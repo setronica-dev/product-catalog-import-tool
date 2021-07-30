@@ -43,6 +43,7 @@ var diConfig = []entry{
 
 	{constructor: ontologyValidator.NewValidator},
 	{constructor: reports.NewReportsHandler},
+	{constructor: offerItemImport.NewOfferItemMappingHandler},
 
 	{constructor: rest.NewRestClient},
 	{constructor: tradeshiftAPI.NewTradeshiftAPI},
