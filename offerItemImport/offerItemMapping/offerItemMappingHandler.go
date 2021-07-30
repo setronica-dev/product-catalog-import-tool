@@ -1,6 +1,7 @@
-package offerItemImport
+package offerItemMapping
 
 import (
+	"fmt"
 	"path/filepath"
 	"ts/adapters"
 	"ts/file/csvFile"
@@ -23,9 +24,12 @@ func NewOfferItemMappingHandler(deps Deps) OfferItemMappingHandlerInterface {
 	}
 }
 func (oi *OfferItemMappingHandler) Run() error {
-	files := adapters.GetFiles(oi.sourcePath)
+	fileNames := adapters.GetFiles(oi.sourcePath)
+	if len(fileNames) == 0 {
+		return fmt.Errorf("no offer items files found in %v", oi.sourcePath)
+	}
 	{
-		for _, fileName := range files {
+		for _, fileName := range fileNames {
 			err := oi.applyMapping(fileName)
 			if err != nil {
 				return err
