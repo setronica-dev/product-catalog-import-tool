@@ -11,12 +11,16 @@ func XLSXToCSV(sourceFilePath string, sheet string, headerLinesCount int, destin
 	data, err := xlsxFile.Read(sourceFilePath, sheet)
 
 	if err != nil {
-		return false, fmt.Errorf("failed to convert XLSX to csv: %v", err)
+		return false, fmt.Errorf("failed to read XLSX file: %v", err)
 	}
 	if len(data) == 0 {
 		return false, nil
 	}
 	clearedData := clearEmptyData(data, headerLinesCount)
+	if len(clearedData) == 0 {
+		return false, nil
+	}
+
 	err = csvFile.Write(destinationFilePath, clearedData)
 	if err != nil {
 		return false, fmt.Errorf("failed to convert XLSX to csv: %v", err)
@@ -26,8 +30,12 @@ func XLSXToCSV(sourceFilePath string, sheet string, headerLinesCount int, destin
 }
 
 func clearEmptyData(data [][]string, headerLinesCount int) [][]string {
-	var res [][]string
+	// will be removed when all sheet's headers will be configurable
+	if headerLinesCount == 0 {
+		return data
+	}
 
+	var res [][]string
 	columnIndexes := getValidColumnIndexes(data[headerLinesCount])
 
 	for _, row := range data[headerLinesCount:] {

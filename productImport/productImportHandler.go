@@ -217,7 +217,7 @@ func (ph *ProductImportHandler) processFeed(
 	validationReportPath = ph.reports.WriteReport(sourceFeedPath, hasErrors, feed, parsedData)
 	if !hasErrors {
 		log.Println("IMPORT FEED TO TRADESHIFT WAS STARTED")
-		er := ph.importHandler.ImportFeedToTradeshift(sourceFeedPath, validationReportPath)
+		er := ph.importHandler.ImportFeedToTradeshift(validationReportPath)
 		if er != nil {
 			log.Printf("FAILED TO IMPORT VALID FEED TO TRADESHIFT. Reason: %v", er)
 		}

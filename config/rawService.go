@@ -27,9 +27,10 @@ type RawOfferCatalogConfig struct {
 }
 
 type RawOfferItemCatalogConfig struct {
-	SourcePath string `yaml:"source"`
-	ReportPath string `yaml:"report"`
-	SentPath   string `yaml:"sent"`
+	SourcePath        string `yaml:"source"`
+	SuccessResultPath string `yaml:"success_result"`
+	ReportPath        string `yaml:"report"`
+	SentPath          string `yaml:"sent"`
 }
 
 type RawCommonCatalogConfig struct {
@@ -57,6 +58,8 @@ type RawTradeshiftAPIConfig struct {
 	Token          string `yaml:"token" validate:"required"`
 	TokenSecret    string `yaml:"token_secret" validate:"required"`
 	TenantId       string `yaml:"tenant_id" validate:"required"`
+	Currency       string `yaml:"currency" validate:"required"`
+	FileLocale     string `yaml:"file_locale" validate:"required"`
 }
 
 func (c *RawServiceConfig) ToConfig() *ServiceConfig {
@@ -88,9 +91,10 @@ func (c *RawOfferCatalogConfig) ToConfig() *OfferCatalogConfig {
 
 func (c *RawOfferItemCatalogConfig) ToConfig() *OfferItemCatalogConfig {
 	return &OfferItemCatalogConfig{
-		SourcePath: c.SourcePath,
-		ReportPath: c.ReportPath,
-		SentPath:   c.SentPath,
+		SourcePath:        c.SourcePath,
+		SuccessResultPath: c.SuccessResultPath,
+		ReportPath:        c.ReportPath,
+		SentPath:          c.SentPath,
 	}
 }
 
@@ -122,5 +126,7 @@ func (t *RawTradeshiftAPIConfig) ToConfig() *TradeshiftAPIConfig {
 		Token:          t.Token,
 		TokenSecret:    t.TokenSecret,
 		TenantId:       t.TenantId,
+		Currency:       t.Currency,
+		FileLocale:     t.FileLocale,
 	}
 }

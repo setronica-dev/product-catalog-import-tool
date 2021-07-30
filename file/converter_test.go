@@ -34,9 +34,10 @@ func Test_clearEmptyData(t *testing.T) {
 		},
 
 		{
-			name: "positive: empty rows should be skipped",
+			name: "positive: empty rows with non-empty header should be skipped",
 			args: args{
 				data: [][]string{
+					{"", "", ""},
 					{"1", "2", "3"},
 					{"", "", ""},
 					{"A", "B", "C"},
@@ -44,7 +45,7 @@ func Test_clearEmptyData(t *testing.T) {
 					{"", "", ""},
 					{"", "", ""},
 				},
-				headerLinesCount: 0,
+				headerLinesCount: 1,
 			},
 			want: [][]string{
 				{"1", "2", "3"},
@@ -53,14 +54,15 @@ func Test_clearEmptyData(t *testing.T) {
 			},
 		},
 		{
-			name: "positive: empty columns should be skipped",
+			name: "positive: empty columns with non-empty header should be skipped",
 			args: args{
 				data: [][]string{
+					{"01", "02", "03", "", "", "", ""},
 					{"1", "2", "", "3", "", "", ""},
 					{"A", "B", "", "C", "", "", ""},
 					{"AA", "BB", "", "CC", "", ""},
 				},
-				headerLinesCount: 0,
+				headerLinesCount: 1,
 			},
 			want: [][]string{
 				{"1", "2", "3"},
@@ -77,7 +79,6 @@ func Test_clearEmptyData(t *testing.T) {
 		})
 	}
 }
-
 
 func Test_getValidColumnIndexes(t *testing.T) {
 	type args struct {
