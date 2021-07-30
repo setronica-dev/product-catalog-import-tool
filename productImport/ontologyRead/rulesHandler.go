@@ -9,16 +9,14 @@ import (
 )
 
 type RulesHandler struct {
-	sourcePath  string
-	reader      adapters.HandlerInterface
-	fileManager *adapters.FileManager
+	sourcePath string
+	reader     adapters.HandlerInterface
 }
 
 func NewRulesHandler(deps Deps) *RulesHandler {
 	return &RulesHandler{
-		sourcePath:  deps.Config.ProductCatalog.OntologyPath,
-		reader:      deps.Handler,
-		fileManager: deps.FilesManager,
+		sourcePath: deps.Config.ProductCatalog.OntologyPath,
+		reader:     deps.Handler,
 	}
 }
 
@@ -41,7 +39,7 @@ func (h *RulesHandler) InitRulesConfig() (*models.OntologyConfig, error) {
 
 func (h *RulesHandler) UploadRules(path string) *rawOntology.RawOntology {
 
-	ext := h.fileManager.GetFileType(path)
+	ext := adapters.GetFileType(path)
 	h.reader.Init(ext)
 	parsedRaws := h.reader.Parse(path)
 	actualHeader := h.reader.GetHeader()

@@ -7,11 +7,11 @@ import (
 	"ts/config"
 	"ts/externalAPI/rest"
 	"ts/externalAPI/tradeshiftAPI"
-	"ts/import/importToTradeshift"
 	"ts/offerImport"
 	"ts/offerImport/importHandler"
 	"ts/offerImport/offerReader"
 	"ts/offerItemImport"
+	"ts/outwardImport/importToTradeshift"
 	"ts/prepareImport"
 	"ts/productImport"
 	"ts/productImport/attribute"
@@ -43,6 +43,7 @@ var diConfig = []entry{
 
 	{constructor: ontologyValidator.NewValidator},
 	{constructor: reports.NewReportsHandler},
+	{constructor: offerItemImport.NewOfferItemMappingHandler},
 
 	{constructor: rest.NewRestClient},
 	{constructor: tradeshiftAPI.NewTradeshiftAPI},

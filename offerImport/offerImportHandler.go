@@ -50,6 +50,7 @@ func (o *OfferImportHandler) processOffers(path string) {
 	if err != nil {
 		log.Printf("Offer Import failed: source file was not replaced: %v", err)
 	}
+
 	o.importHandler.ImportOffers(offers)
 }
 
