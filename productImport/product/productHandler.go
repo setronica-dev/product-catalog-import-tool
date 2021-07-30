@@ -7,16 +7,14 @@ import (
 )
 
 type ProductHandler struct {
-	fileManager *adapters.FileManager
-	handler     adapters.HandlerInterface
-	ColumnMap   *ColumnMap
+	handler   adapters.HandlerInterface
+	ColumnMap *ColumnMap
 }
 
 func NewProductHandler(deps Deps) ProductHandlerInterface {
 	m := deps.Mapping.Parse()
 	return &ProductHandler{
-		fileManager: deps.FileManager,
-		handler:     deps.Handler,
+		handler: deps.Handler,
 		ColumnMap: &ColumnMap{
 			ProductID: m.ProductID,
 			Category:  m.Category,
@@ -37,7 +35,7 @@ func (ph *ProductHandler) InitSourceData(sourceFeedPath string) ([]map[string]in
 func (ph *ProductHandler) read(filePath string) ([]map[string]interface{}, error) {
 	_, err := os.Stat(filePath)
 	if !os.IsNotExist(err) {
-		ph.handler.Init(ph.fileManager.GetFileType(filePath))
+		ph.handler.Init(adapters.GetFileType(filePath))
 		parsedData := ph.handler.Parse(filePath)
 		return parsedData, nil
 	}

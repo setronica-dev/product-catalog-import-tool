@@ -2,19 +2,11 @@ package offerItemImport
 
 import (
 	"fmt"
-	"go.uber.org/dig"
 	"log"
 	"path/filepath"
 	"ts/adapters"
-	"ts/config"
 	"ts/outwardImport"
 )
-
-type Deps struct {
-	dig.In
-	OutwardImportHandler outwardImport.OutwardImportInterface
-	Config               *config.Config
-}
 
 type OfferItemImportHandler struct {
 	outwardImportHandler outwardImport.OutwardImportInterface

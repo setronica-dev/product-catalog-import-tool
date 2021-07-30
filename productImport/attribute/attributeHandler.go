@@ -8,16 +8,14 @@ import (
 )
 
 type AttributeHandler struct {
-	fileManager *adapters.FileManager
-	handler     adapters.HandlerInterface
-	columnMap   *ColumnMap
+	handler   adapters.HandlerInterface
+	columnMap *ColumnMap
 }
 
 func NewAttributeHandler(deps Deps) AttributeHandlerInterface {
 	h := deps.Report.Header
 	return &AttributeHandler{
-		fileManager: deps.FileManager,
-		handler:     deps.Handler,
+		handler: deps.Handler,
 		columnMap: &ColumnMap{
 			ProductId:    h.ProductId,
 			Name:         h.Name,
@@ -48,7 +46,7 @@ func (ah *AttributeHandler) InitAttributeData(filePath string) ([]*Attribute, er
 func (ah *AttributeHandler) readData(filePath string) ([]map[string]interface{}, error) {
 	_, err := os.Stat(filePath)
 	if !os.IsNotExist(err) {
-		ah.handler.Init(ah.fileManager.GetFileType(filePath))
+		ah.handler.Init(adapters.GetFileType(filePath))
 		reportDataSource := ah.handler.Parse(filePath)
 		return reportDataSource, nil
 	}

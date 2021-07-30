@@ -8,7 +8,6 @@ import (
 
 func TestAttributeHandler_getCurrentHeader(t *testing.T) {
 	type fields struct {
-		fileManager *adapters.FileManager
 		handler     adapters.HandlerInterface
 		columnMap   *ColumnMap
 	}
@@ -70,7 +69,6 @@ func TestAttributeHandler_getCurrentHeader(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			ah := &AttributeHandler{
-				fileManager: tt.fields.fileManager,
 				handler:     tt.fields.handler,
 				columnMap:   tt.fields.columnMap,
 			}
@@ -212,7 +210,6 @@ func TestAttributeHandler_parseData(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			ah := &AttributeHandler{
-				fileManager: tt.fields.fileManager,
 				handler:     tt.fields.handler,
 				columnMap:   tt.fields.columnMap,
 			}
