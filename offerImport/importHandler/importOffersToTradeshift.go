@@ -25,7 +25,7 @@ func (i *ImportOfferHandler) ImportOffers(offers []offerReader.RawOffer) {
 			log.Printf("failed to import offer \"%v\". Reason:  %v", offer, err)
 			break
 		}
-
+		log.Printf("IMPORT OFFERS TO TRADESHIFT WAS STARTED")
 		_, err := i.ImportOffer(
 			offer.Offer,
 			offer.Receiver,

@@ -1,4 +1,4 @@
-package offerItemImport
+package offerItemMapping
 
 import (
 	"reflect"

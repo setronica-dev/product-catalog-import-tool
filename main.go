@@ -5,6 +5,7 @@ import (
 	"ts/config"
 	"ts/di"
 	"ts/offerImport"
+	"ts/offerItemImport"
 	"ts/prepareImport"
 	"ts/productImport"
 )
@@ -25,9 +26,11 @@ func start(
 	prepareImportHandler *prepareImport.Handler,
 	productImportHandler *productImport.ProductImportHandler,
 	offerImportHandler *offerImport.OfferImportHandler,
+	offerItemImportHandler offerItemImport.OfferItemImportHandlerInterface,
 ) {
 	prepareImportHandler.Run()
 	offerImportHandler.RunCSV()
 	productImportHandler.RunCSV()
+	offerItemImportHandler.Run()
 	return
 }

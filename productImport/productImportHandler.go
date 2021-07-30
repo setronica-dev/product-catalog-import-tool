@@ -89,13 +89,13 @@ func (ph *ProductImportHandler) RunCSV() {
 	columnMap := ph.mapHandler.Get()
 
 	// feed
-	err = ph.processProducts(columnMap, rulesConfig)
+	err = ph.runProductValidationImportFlow(columnMap, rulesConfig)
 	if err != nil {
 		log.Println(err)
 	}
 }
 
-func (ph *ProductImportHandler) processProducts(columnMap map[string]string, rulesConfig *models.OntologyConfig) error {
+func (ph *ProductImportHandler) runProductValidationImportFlow(columnMap map[string]string, rulesConfig *models.OntologyConfig) error {
 	// if something in progress
 
 	var processedSource []string

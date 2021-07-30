@@ -5,40 +5,65 @@ import (
 	"log"
 	"path/filepath"
 	"ts/adapters"
+	offerItemMapping2 "ts/offerItemImport/offerItemMapping"
 	"ts/outwardImport"
 )
 
 type OfferItemImportHandler struct {
 	outwardImportHandler outwardImport.OutwardImportInterface
+	offerItemMapping     offerItemMapping2.OfferItemMappingHandlerInterface
 	sourcePath           string
+	successPath          string
+	sentPath             string
 	reportPath           string
 }
 
 func NewOfferItemImportHandler(deps Deps) OfferItemImportHandlerInterface {
+	conf := deps.Config.OfferItemCatalog
 	return &OfferItemImportHandler{
 		outwardImportHandler: deps.OutwardImportHandler,
-		sourcePath:           deps.Config.OfferItemCatalog.SuccessResultPath,
-		reportPath:           deps.Config.OfferItemCatalog.ReportPath,
+		offerItemMapping:     deps.OfferItemMapping,
+		sourcePath:           conf.SourcePath,
+		sentPath:             conf.SentPath,
+		successPath:          conf.SuccessResultPath,
+		reportPath:           conf.ReportPath,
 	}
 }
 
 func (oi *OfferItemImportHandler) Run() {
 	files := adapters.GetFiles(oi.sourcePath)
 	if len(files) == 0 {
-		log.Printf("Offer Import failed: please, put file with offers into %v", oi.sourcePath)
+		log.Printf("Offer Item Import failed: please, put file with offers into %v", oi.sourcePath)
 		return
 	}
 
 	for _, fileName := range files {
-		err := oi.runImport(fileName)
+		err := oi.runOfferItemImportFlow(fileName)
 		if err != nil {
-			log.Printf("failed offerItems import: %v", err)
+			log.Println(err)
 		}
 	}
 }
 
-func (oi *OfferItemImportHandler) runImport(fileName string) error {
-	actionID, err := oi.outwardImportHandler.ImportOfferItems(filepath.Join(oi.sourcePath, fileName))
+func (oi *OfferItemImportHandler) runOfferItemImportFlow(fileName string) error {
+	err := oi.offerItemMapping.Run()
+	if err != nil {
+		return fmt.Errorf("failed apply offerItems mapping: %v", err)
+	}
+	_, err = adapters.MoveToPath(filepath.Join(oi.sourcePath, fileName), oi.sentPath)
+	if err != nil {
+		return fmt.Errorf("failed offerItems source file replacement: %v", err)
+	}
+
+	err = oi.importToTradeshift(fileName)
+	if err != nil {
+		return fmt.Errorf("failed offerItems import: %v", err)
+	}
+	return nil
+}
+
+func (oi *OfferItemImportHandler) importToTradeshift(fileName string) error {
+	actionID, err := oi.outwardImportHandler.ImportOfferItems(filepath.Join(oi.successPath, fileName))
 	if err != nil {
 		return err
 	}

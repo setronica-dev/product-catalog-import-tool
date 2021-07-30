@@ -3,6 +3,7 @@ package importToTradeshift
 import (
 	"fmt"
 	"log"
+	"os"
 	"time"
 )
 
@@ -15,30 +16,34 @@ const (
 	retriesDelay                 = 1 * time.Second
 )
 
-func (ti *TradeshiftImport) ImportProducts(sourcePath string) (string, error) {
-	return ti.runSupplierImport(sourcePath, false)
+func (ti *TradeshiftImport) ImportProducts(sourceFilePath string) (string, error) {
+	return ti.runSupplierImport(sourceFilePath, false)
 }
 
-func (ti *TradeshiftImport) ImportOfferItems(sourcePath string) (string, error) {
-	return ti.runSupplierImport(sourcePath, true)
+func (ti *TradeshiftImport) ImportOfferItems(sourceFilePath string) (string, error) {
+	return ti.runSupplierImport(sourceFilePath, true)
 }
 
-func (ti *TradeshiftImport) runSupplierImport(sourcePath string, isOfferItemsImport bool) (string, error) {
-
+func (ti *TradeshiftImport) runSupplierImport(sourceFilePath string, isOfferItemsImport bool) (string, error) {
+	_, err := os.Stat(sourceFilePath)
+	if os.IsNotExist(err) {
+		return "", fmt.Errorf("file for import %v not found", sourceFilePath)
+	}
 	api := ti.transport
+
 	// prepare supplier for import
-	err := ti.defineSupplierProperties()
+	err = ti.defineSupplierProperties()
 	if err != nil {
 		return "", fmt.Errorf("failed to define supplier properties: %v", err)
 	}
 	//upload file
-	r, err := api.UploadFile(sourcePath)
+	r, err := api.UploadFile(sourceFilePath)
 	if err != nil {
 		return "", fmt.Errorf("failed file upload %v", err)
 	}
 	fileID := fmt.Sprintf("%s", r["id"])
 
-	log.Println("Uploaded file with file_id:", fileID)
+	log.Println("uploaded file with file_id:", fileID)
 
 	//import file
 	actionID, err := api.RunImportAction(fmt.Sprintf("%s", fileID), ti.tsConfig.tsCurrency, ti.tsConfig.tsLocale, isOfferItemsImport)
