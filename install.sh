@@ -31,6 +31,8 @@ tradeshift_api:
   token:
   token_secret:
   tenant_id:
+  currency:
+  file_locale:
 EOF
 }
 
