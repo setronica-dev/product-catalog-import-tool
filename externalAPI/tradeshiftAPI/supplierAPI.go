@@ -39,21 +39,30 @@ func (t *TradeshiftAPI) UploadFile(filePath string) (map[string]interface{}, err
 	return r, err
 }
 
-func (t *TradeshiftAPI) RunImportAction(fileID string, currency string, fileLocale string) (string, error) {
+func (t *TradeshiftAPI) RunImportAction(fileID string, currency string, fileLocale string, isOfferItemsImport bool) (string, error) {
 	method := fmt.Sprintf("/product-engine/supplier/supplier/v1/product-import/files/%v/actions/import-products", url.QueryEscape(fileID))
+
+	urlParams := []rest.UrlParam{
+		{
+			Key:   "currency",
+			Value: currency,
+		},
+		{
+			Key:   "fileLocale",
+			Value: fileLocale,
+		},
+	}
+
+	if isOfferItemsImport {
+		urlParams = append(urlParams, rest.UrlParam{
+			Key:   "shareOffers",
+			Value: "true",
+		})
+	}
 	resp, err := t.Client.Post(
 		method,
 		nil,
-		[]rest.UrlParam{
-			{
-				Key:   "currency",
-				Value: currency,
-			},
-			{
-				Key:   "fileLocale",
-				Value: fileLocale,
-			},
-		})
+		urlParams)
 	if err != nil {
 		return "", err
 	}
