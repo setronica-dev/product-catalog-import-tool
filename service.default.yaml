@@ -1,6 +1,3 @@
-port: 8085
-debug: false
-
 product:
   source: ./data/source/products/
   report: ./data/result/report/
@@ -14,6 +11,23 @@ product:
 offer:
   source: ./data/source/offers/
   sent: ./data/source/processed/offers/
+
+offer_item:
+  source: ./data/source/offerItems/
+  success_result: ./data/result/sent/offerItems/
+  report: ./data/result/report/
+  sent: ./data/source/processed/offerItems/
+
+common:
+  source: ./data/source/
+  sent: ./data/source/processed/
+  sheet:
+    products: "Products"
+    offers: "Offers"
+    failures: "Attributes"
+    offer_items:
+      name: "Prices"
+      header_columns_count: 2
 
 tradeshift_api:
   # set Tradeshift API parameters from API Access To Own Account in Tradeshift pannel
