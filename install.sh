@@ -11,9 +11,16 @@ product:
   fail_result: ${DIR}/data/result/report/
   mapping: ${DIR}/data/mapping/mapping.yaml
   ontology: ${DIR}/data/ontology/rules.csv
+
 offer:
   source: ${DIR}/data/source/offers/
   sent: ${DIR}/data/source/processed/offers/
+
+offer_item:
+  source: ${DIR}/data/source/offeritems/
+  success_result: ${DIR}/data/result/sent/offeritems/
+  report: ${DIR}/data/result/report/offeritems/
+  sent: ${DIR}/data/source/processed/offeritems/
 
 common:
   source: ${DIR}/data/source/
@@ -22,6 +29,9 @@ common:
     products: "Products"
     offers: "Offers"
     failures: "Attributes"
+    offer_items:
+      name: "Prices"
+      header_columns_count: 2
 
 tradeshift_api:
   # set Tradeshift API parameters from API Access To Own Account in Tradeshift pannel
