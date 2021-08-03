@@ -11,11 +11,11 @@ type Product struct {
 }
 
 type Products struct {
-	columnMap *ColumnMap
+	columnMap *ProductColumnMap
 	data      []*Product
 }
 
-func NewProducts(rawProducts []map[string]interface{}, columnMap *ColumnMap, ) *Products {
+func NewProducts(rawProducts []map[string]interface{}, columnMap *ProductColumnMap) *Products {
 	return &Products{
 		columnMap: columnMap,
 		data:      getParsedProducts(rawProducts, columnMap),
@@ -26,7 +26,7 @@ func (ps *Products) GetProducts() []*Product {
 	return ps.data
 }
 
-func getParsedProducts(rawProducts []map[string]interface{}, columnMap *ColumnMap) []*Product {
+func getParsedProducts(rawProducts []map[string]interface{}, columnMap *ProductColumnMap) []*Product {
 	var res []*Product
 
 	for _, rawProduct := range rawProducts {
@@ -35,7 +35,7 @@ func getParsedProducts(rawProducts []map[string]interface{}, columnMap *ColumnMa
 	return res
 }
 
-func parseProduct(rawProduct map[string]interface{}, columnMap *ColumnMap) *Product {
+func parseProduct(rawProduct map[string]interface{}, columnMap *ProductColumnMap) *Product {
 	rawAttributes := make(map[string]string, 0)
 	product := Product{
 		ID:       fmt.Sprintf("%v", rawProduct[columnMap.ProductID]),

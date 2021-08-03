@@ -56,7 +56,7 @@ type Deps struct {
 }
 
 func NewProductImportHandler(deps Deps) *ProductImportHandler {
-	m := deps.MapHandler.Parse()
+	m := deps.MapHandler.GetColumnMapConfig()
 	return &ProductImportHandler{
 		config:           deps.Config,
 		mapHandler:       deps.MapHandler,
@@ -71,7 +71,6 @@ func NewProductImportHandler(deps Deps) *ProductImportHandler {
 		columnMap: &ColumnMap{
 			ProductID: m.ProductID,
 			Category:  m.Category,
-			Name:      m.Name,
 		},
 	}
 }

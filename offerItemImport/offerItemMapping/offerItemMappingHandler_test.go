@@ -8,7 +8,7 @@ import (
 
 func TestOfferItemReader_buildHeader(t *testing.T) {
 	type fields struct {
-		columnMap         *mapping.ColumnMap
+		columnMap         *mapping.ColumnMapConfig
 		sourcePath        string
 		successReportPath string
 	}
@@ -24,7 +24,7 @@ func TestOfferItemReader_buildHeader(t *testing.T) {
 		{
 			name: "positive",
 			fields: fields{
-				columnMap: &mapping.ColumnMap{
+				columnMap: &mapping.ColumnMapConfig{
 					ProductID: "Product ID",
 				},
 			},

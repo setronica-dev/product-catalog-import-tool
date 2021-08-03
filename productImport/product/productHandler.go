@@ -8,14 +8,14 @@ import (
 
 type ProductHandler struct {
 	handler   adapters.HandlerInterface
-	ColumnMap *ColumnMap
+	ColumnMap *ProductColumnMap
 }
 
 func NewProductHandler(deps Deps) ProductHandlerInterface {
-	m := deps.Mapping.Parse()
+	m := deps.Mapping.GetColumnMapConfig()
 	return &ProductHandler{
 		handler: deps.Handler,
-		ColumnMap: &ColumnMap{
+		ColumnMap: &ProductColumnMap{
 			ProductID: m.ProductID,
 			Category:  m.Category,
 			Name:      m.Name,

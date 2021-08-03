@@ -52,7 +52,7 @@ func Test_parse(t *testing.T) {
 func TestProductHandler_GetCurrentHeader(t *testing.T) {
 	type fields struct {
 		handler     adapters.HandlerInterface
-		columnMap   *ColumnMap
+		columnMap   *ProductColumnMap
 	}
 	type args struct {
 		row map[string]interface{}
@@ -61,13 +61,13 @@ func TestProductHandler_GetCurrentHeader(t *testing.T) {
 		name   string
 		fields fields
 		args   args
-		want   *ColumnMap
+		want   *ProductColumnMap
 	}{
 	// tests unstable, should be used only for manual run
 		{
 			name: "positive: should be selected compatible with mapped column names from source product data",
 			fields: fields{
-				columnMap: &ColumnMap{
+				columnMap: &ProductColumnMap{
 					Category:  "Unspsc",
 					ProductID: "Product ID",
 					Name:      "NAME*",
@@ -81,7 +81,7 @@ func TestProductHandler_GetCurrentHeader(t *testing.T) {
 					"Category Name": "44444",
 				},
 			},
-			want: &ColumnMap{
+			want: &ProductColumnMap{
 				Category:  "UNSPSC",
 				ProductID: "ProductID*",
 				Name:      "Name ",
@@ -91,7 +91,7 @@ func TestProductHandler_GetCurrentHeader(t *testing.T) {
 			name: "positive: should not be selected column names from source products data which are incompatible " +
 				"with mapping column names",
 			fields: fields{
-				columnMap: &ColumnMap{
+				columnMap: &ProductColumnMap{
 					Category:  "Unspsc",
 					ProductID: "ProductID",
 					Name:      "Name",
@@ -104,7 +104,7 @@ func TestProductHandler_GetCurrentHeader(t *testing.T) {
 					"Name":       "33333",
 				},
 			},
-			want: &ColumnMap{
+			want: &ProductColumnMap{
 				ProductID: "ProductID*",
 				Name:      "Name",
 			},
