@@ -1,17 +1,19 @@
-package offerItemImport
+package offerItemMapping
 
 import (
 	"go.uber.org/dig"
 	"ts/config"
-	"ts/offerItemImport/offerItemMapping"
 	"ts/outwardImport"
 	"ts/productImport/mapping"
 )
 
+type OfferItemMappingHandlerInterface interface {
+	Run() error
+}
+
 type Deps struct {
 	dig.In
 	OutwardImportHandler outwardImport.OutwardImportInterface
-	OfferItemMapping     offerItemMapping.OfferItemMappingHandlerInterface
 	Mapping              mapping.MappingHandlerInterface
 	Config               *config.Config
 }

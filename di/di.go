@@ -11,6 +11,7 @@ import (
 	"ts/offerImport/importHandler"
 	"ts/offerImport/offerReader"
 	"ts/offerItemImport"
+	"ts/offerItemImport/offerItemMapping"
 	"ts/outwardImport/importToTradeshift"
 	"ts/prepareImport"
 	"ts/productImport"
@@ -43,7 +44,7 @@ var diConfig = []entry{
 
 	{constructor: ontologyValidator.NewValidator},
 	{constructor: reports.NewReportsHandler},
-	{constructor: offerItemImport.NewOfferItemMappingHandler},
+	{constructor: offerItemMapping.NewOfferItemMappingHandler},
 
 	{constructor: rest.NewRestClient},
 	{constructor: tradeshiftAPI.NewTradeshiftAPI},

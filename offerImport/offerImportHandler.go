@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"go.uber.org/dig"
 	"log"
+	"path/filepath"
 	"ts/adapters"
 	"ts/config"
 	"ts/offerImport/importHandler"
@@ -34,19 +35,19 @@ func NewOfferImportHandler(deps Deps) *OfferImportHandler {
 }
 
 func (o *OfferImportHandler) RunCSV() {
-	paths := adapters.GetFiles(o.sourcePath)
-	if len(paths) == 0 {
+	sourceFileNames := adapters.GetFiles(o.sourcePath)
+	if len(sourceFileNames) == 0 {
 		log.Printf("Offer Import failed: please, put file with offers into %v", o.sourcePath)
 		return
 	}
 
-	for _, path := range paths {
-		o.processOffers(path)
+	for _, fileName := range sourceFileNames {
+		o.runOfferImportFlow(fileName)
 	}
 }
 
-func (o *OfferImportHandler) processOffers(path string) {
-	offers, err := o.uploadOffers(path)
+func (o *OfferImportHandler) runOfferImportFlow(fileName string) {
+	offers, err := o.uploadOffers(fileName)
 	if err != nil {
 		log.Printf("Offer Import failed: source file was not replaced: %v", err)
 	}
@@ -54,25 +55,20 @@ func (o *OfferImportHandler) processOffers(path string) {
 	o.importHandler.ImportOffers(offers)
 }
 
-func (o *OfferImportHandler) uploadOffers(path string) ([]offerReader.RawOffer, error) {
-	log.Printf("Offer Import for %v was started", path)
+func (o *OfferImportHandler) uploadOffers(fileName string) ([]offerReader.RawOffer, error) {
+	log.Printf("Offer Import for %v was started", fileName)
 
-	offers := o.offerReader.UploadOffers(o.getSourcePath(path))
+	offers := o.offerReader.UploadOffers(filepath.Join(o.sourcePath, fileName))
 	if len(offers) == 0 {
 		return nil, fmt.Errorf(
 			"Offer Upload failed: 0 offers were loaded from %v. Please, check file and try again",
 			o.sourcePath)
 	}
-	err := o.processSourceFile(path)
+	err := o.processSourceFile(fileName)
 	return offers, err
 }
 
-func (o *OfferImportHandler) processSourceFile(path string) error {
-	filePath := o.getSourcePath(path)
-	_, err := adapters.MoveToPath(filePath, o.sentPath)
+func (o *OfferImportHandler) processSourceFile(fileName string) error {
+	_, err := adapters.MoveToPath(filepath.Join(o.sourcePath, fileName), o.sentPath)
 	return err
-}
-
-func (o *OfferImportHandler) getSourcePath(path string) string {
-	return fmt.Sprintf("%v/%v", o.sourcePath, path)
 }
