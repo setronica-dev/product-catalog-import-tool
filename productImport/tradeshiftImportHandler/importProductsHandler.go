@@ -48,7 +48,7 @@ func NewTradeshiftHandler(deps DepsH) *TradeshiftHandler {
 func (th *TradeshiftHandler) ImportFeedToTradeshift(
 	validationReportPath string) error {
 
-	actionID, err := th.outwardImportHandler.ImportProductsAndOffers(validationReportPath)
+	actionID, err := th.outwardImportHandler.ImportProducts(validationReportPath)
 	if err != nil {
 		return err
 	}

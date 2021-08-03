@@ -15,7 +15,15 @@ const (
 	retriesDelay                 = 1 * time.Second
 )
 
-func (ti *TradeshiftImport) ImportProductsAndOffers(sourcePath string) (string, error) {
+func (ti *TradeshiftImport) ImportProducts(sourcePath string) (string, error) {
+	return ti.runSupplierImport(sourcePath, false)
+}
+
+func (ti *TradeshiftImport) ImportOfferItems(sourcePath string) (string, error) {
+	return ti.runSupplierImport(sourcePath, true)
+}
+
+func (ti *TradeshiftImport) runSupplierImport(sourcePath string, isOfferItemsImport bool) (string, error) {
 
 	api := ti.transport
 	// prepare supplier for import
@@ -33,11 +41,10 @@ func (ti *TradeshiftImport) ImportProductsAndOffers(sourcePath string) (string, 
 	log.Println("Uploaded file with file_id:", fileID)
 
 	//import file
-	actionID, err := api.RunImportAction(fmt.Sprintf("%s", fileID), ti.tsConfig.tsCurrency, ti.tsConfig.tsLocale)
+	actionID, err := api.RunImportAction(fmt.Sprintf("%s", fileID), ti.tsConfig.tsCurrency, ti.tsConfig.tsLocale, isOfferItemsImport)
 	if err != nil {
 		return actionID, fmt.Errorf("failed file import:%v", err)
 	}
-
 	return actionID, nil
 }
 

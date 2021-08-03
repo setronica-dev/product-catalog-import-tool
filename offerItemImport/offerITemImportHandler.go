@@ -38,8 +38,7 @@ func (oi *OfferItemImportHandler) Run() {
 }
 
 func (oi *OfferItemImportHandler) runImport(fileName string) error {
-
-	actionID, err := oi.outwardImportHandler.ImportProductsAndOffers(filepath.Join(oi.sourcePath, fileName))
+	actionID, err := oi.outwardImportHandler.ImportOfferItems(filepath.Join(oi.sourcePath, fileName))
 	if err != nil {
 		return err
 	}
