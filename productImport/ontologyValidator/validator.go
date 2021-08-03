@@ -19,7 +19,7 @@ type ColumnMap struct {
 }
 
 func NewValidator(deps Deps) ValidatorInterface {
-	m := deps.Mapper.Parse()
+	m := deps.Mapper.GetColumnMapConfig()
 	return &Validator{
 		productHandler: deps.ProductHandler,
 		ColumnMap: &ColumnMap{

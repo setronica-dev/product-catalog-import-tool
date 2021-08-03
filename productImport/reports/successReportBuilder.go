@@ -2,13 +2,15 @@ package reports
 
 import (
 	"fmt"
+	"ts/productImport/mapping"
 	"ts/utils"
 )
 
 const (
+	idIndex        = 0
+	categoryIndex  = 1
 	tsCategoryKey  = "Category"
 	tsProductIdKey = "ID"
-	tsNameKey      = "Name"
 )
 
 func (r *ReportsHandler) buildSuccessData(report []Report, source []map[string]interface{}) [][]string {
@@ -17,21 +19,78 @@ func (r *ReportsHandler) buildSuccessData(report []Report, source []map[string]i
 	return res
 }
 
+func buildSuccessReportHeader(sourceRow map[string]interface{}, reportItems []Report, columnMapConfig *mapping.ColumnMapConfig) ([]string, map[string]int64) {
+	sourceHeaderKeys := getSortedHeader(sourceRow, columnMapConfig)
+	headerTs, headerIndex := buildProductsHeaderPart(sourceHeaderKeys, columnMapConfig)
+
+	//check all the ontology attribute columns are defined and if not - extend headerIndex and headerTs
+	for _, reportItem := range reportItems {
+		if _, ok := headerIndex[reportItem.AttrName]; !ok {
+			headerTs = append(headerTs, reportItem.AttrName)
+			headerIndex[reportItem.AttrName] = int64(len(headerTs) - 1)
+		}
+	}
+	return headerTs, headerIndex
+}
+
+func getSortedHeader(sourceRow map[string]interface{}, columnMapConfig *mapping.ColumnMapConfig) []string {
+	requiredKeys := make([]string, 2)
+	otherKeys := make([]string, 0)
+
+	for k, _ := range sourceRow {
+		switch utils.TrimAll(k) {
+		case utils.TrimAll(columnMapConfig.ProductID):
+			requiredKeys[idIndex] = k
+		case utils.TrimAll(columnMapConfig.Category):
+			requiredKeys[categoryIndex] = k
+		default:
+			otherKeys = append(otherKeys, k)
+		}
+	}
+	res:=make( []string, len(requiredKeys)+len(otherKeys))
+	copy(res, requiredKeys)
+	copy(res[len(requiredKeys):], otherKeys)
+	return res
+}
+
+func buildProductsHeaderPart(sourceRow []string, columnMapConfig *mapping.ColumnMapConfig) ([]string, map[string]int64) {
+	headerTs := make([]string, 2)
+	headerIndex := make(map[string]int64, 0)
+	headerTs[categoryIndex] = tsCategoryKey
+	headerTs[idIndex] = tsProductIdKey
+
+	for i, sourceColumnName := range sourceRow {
+		switch utils.TrimAll(sourceColumnName) {
+		case utils.TrimAll(columnMapConfig.Category):
+			headerIndex[sourceColumnName] = categoryIndex
+		case utils.TrimAll(columnMapConfig.ProductID):
+			headerIndex[sourceColumnName] = idIndex
+		default:
+			f := columnMapConfig.GetDefaultValueByMapped(sourceColumnName)
+			if f != nil {
+				headerTs = append(headerTs, f.DefaultKey)
+			} else {
+				headerTs = append(headerTs, sourceColumnName)
+			}
+			headerIndex[sourceColumnName] = int64(i) //todo check why
+		}
+	}
+	return headerTs, headerIndex
+}
+
 /**
-* transformation iteration
+* transformation flow
  */
 func (r *ReportsHandler) buildSuccessMapRaw(source []map[string]interface{}, reportAttrItems []Report) [][]string {
-
-	tsFormattedHeader, headerIndex := buildSuccessReportHeader(source, reportAttrItems, r.ColumnMap)
+	tsFormattedHeader, headerIndex := buildSuccessReportHeader(source[0], reportAttrItems, r.ColumnMapConfig)
 	// reset length
 	headerLength := len(tsFormattedHeader)
 
+	// get parsable products list
+	parsedSourceProducts := r.productHandler.InitParsedSourceData(source)
 	// build final report
 	report := make([][]string, 1)
 	report[0] = tsFormattedHeader
-
-	// get parsable products list
-	parsedSourceProducts := r.productHandler.InitParsedSourceData(source)
 
 	for _, sourceProduct := range parsedSourceProducts.GetProducts() {
 		reportItem := make([]string, headerLength)
@@ -83,45 +142,4 @@ func findAttributeByName(attrName string, attributes []Report) *Report {
 		}
 	}
 	return nil
-}
-
-func buildSuccessReportHeader(source []map[string]interface{}, reportItems []Report, columnMap *ColumnMap) ([]string, map[string]int64) {
-	// headers from the source but ID and Category go first
-	sourceRow := source[0]
-	sourceOrderedHeader := make([]string, 2)
-	sourceOrderedHeader[idIndex] = columnMap.ProductID
-	sourceOrderedHeader[categoryIndex] = columnMap.Category
-	for k := range sourceRow {
-		if utils.TrimAll(k) != utils.TrimAll(columnMap.ProductID) && utils.TrimAll(k) != utils.TrimAll(columnMap.Category) {
-			sourceOrderedHeader = append(sourceOrderedHeader, k)
-		}
-	}
-	// build index of header cols
-	headerLength := len(sourceOrderedHeader)
-	headerIndex := make(map[string]int64, headerLength)
-	for i, v := range sourceOrderedHeader {
-		headerIndex[v] = int64(i)
-	}
-	//form correct header with Mappings
-	headerTs := make([]string, len(sourceOrderedHeader))
-	for i, v := range sourceOrderedHeader {
-		switch utils.TrimAll(v) {
-		case utils.TrimAll(columnMap.Category):
-			headerTs[i] = tsCategoryKey
-		case utils.TrimAll(columnMap.ProductID):
-			headerTs[i] = tsProductIdKey
-		case utils.TrimAll(columnMap.Name):
-			headerTs[i] = tsNameKey
-		default:
-			headerTs[i] = v
-		}
-	}
-	//check all the ontology attribute columns are defined and if not - extend headerIndex and headerTs
-	for _, reportItem := range reportItems {
-		if _, ok := headerIndex[reportItem.AttrName]; !ok {
-			headerTs = append(headerTs, reportItem.AttrName)
-			headerIndex[reportItem.AttrName] = int64(len(headerTs) - 1)
-		}
-	}
-	return headerTs, headerIndex
 }

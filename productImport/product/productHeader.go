@@ -5,14 +5,14 @@ import (
 	"ts/utils"
 )
 
-type ColumnMap struct {
+type ProductColumnMap struct {
 	ProductID string
 	Category  string
 	Name      string
 }
 
-func (p *ProductHandler) GetCurrentHeader(row map[string]interface{}) *ColumnMap {
-	var res ColumnMap
+func (p *ProductHandler) GetCurrentHeader(row map[string]interface{}) *ProductColumnMap {
+	var res ProductColumnMap
 
 	columnMap := p.ColumnMap
 	for k, _ := range row {
