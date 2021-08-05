@@ -1,18 +1,7 @@
-package config
+package configModels
 
 type ServiceConfig struct {
 	Port uint16
-}
-
-type TradeshiftAPIConfig struct {
-	APIBaseURL     string
-	ConsumerKey    string
-	ConsumerSecret string
-	Token          string
-	TokenSecret    string
-	TenantId       string
-	Currency       string
-	FileLocale     string
 }
 
 type ProductCatalogConfig struct {
@@ -55,4 +44,16 @@ type SheetConfig struct {
 type SheetParamsConfig struct {
 	Name            string
 	HeaderRowsCount int
+}
+
+type TradeshiftAPIConfig struct {
+	APIBaseURL     string
+	ConsumerKey    string
+	ConsumerSecret string
+	Token          string
+	TokenSecret    string
+	TenantId       string
+	Currency       string
+	FileLocale     string
+	Recipients     *Recipients
 }

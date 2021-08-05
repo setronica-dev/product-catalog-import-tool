@@ -4,28 +4,30 @@ import (
 	"fmt"
 	"log"
 	"time"
+	"ts/config/configModels"
 	"ts/externalAPI/tradeshiftAPI"
 	"ts/offerImport/offerReader"
 )
 
 type ImportOfferHandler struct {
-	transport *tradeshiftAPI.TradeshiftAPI
+	transport  *tradeshiftAPI.TradeshiftAPI
+	Recipients *configModels.Recipients
 }
 
 func NewImportOfferHandler(deps Deps) ImportOfferInterface {
 	return &ImportOfferHandler{
-		transport: deps.Transport,
+		transport:  deps.Transport,
+		Recipients: deps.Config.TradeshiftAPI.Recipients,
 	}
 }
 
 func (i *ImportOfferHandler) ImportOffers(offers []offerReader.RawOffer) {
-
+	log.Printf("IMPORT OFFERS TO TRADESHIFT WAS STARTED")
 	for _, offer := range offers {
 		if err := validateOffer(offer); err != nil {
 			log.Printf("failed to import offer \"%v\". Reason:  %v", offer, err)
 			break
 		}
-		log.Printf("IMPORT OFFERS TO TRADESHIFT WAS STARTED")
 		_, err := i.ImportOffer(
 			offer.Offer,
 			offer.Receiver,
@@ -50,10 +52,14 @@ func validateOffer(offer offerReader.RawOffer) error {
 
 func (i *ImportOfferHandler) ImportOffer(
 	offerName string,
-	buyerID string,
+	recipientName string,
 	startDate *time.Time,
 	endDate *time.Time,
 	countries []string) (Status, error) {
+	buyerID := i.Recipients.GetRecipientIDByName(recipientName)
+	if buyerID == "" {
+		return Failed, fmt.Errorf("failed to find buyer %v in config", recipientName)
+	}
 	isFound, err := i.isBuyerExists(buyerID)
 	if err != nil {
 		return Failed, err

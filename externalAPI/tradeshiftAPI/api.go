@@ -22,4 +22,3 @@ func NewTradeshiftAPI(deps Deps) *TradeshiftAPI {
 		Client: deps.Connection,
 	}
 }
-

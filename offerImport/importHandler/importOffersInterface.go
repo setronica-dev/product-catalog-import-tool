@@ -2,6 +2,7 @@ package importHandler
 
 import (
 	"go.uber.org/dig"
+	"ts/config"
 	"ts/externalAPI/tradeshiftAPI"
 	"ts/offerImport/offerReader"
 )
@@ -18,6 +19,7 @@ const (
 type Deps struct {
 	dig.In
 	Transport *tradeshiftAPI.TradeshiftAPI
+	Config    *config.Config
 }
 
 type ImportOfferInterface interface {
