@@ -10,7 +10,7 @@ import (
 )
 
 type OfferItemMappingHandler struct {
-	columnMap         *mapping.ColumnMap
+	columnMap         *mapping.ColumnMapConfig
 	sourcePath        string
 	successReportPath string
 }
@@ -18,7 +18,7 @@ type OfferItemMappingHandler struct {
 func NewOfferItemMappingHandler(deps Deps) OfferItemMappingHandlerInterface {
 	conf := deps.Config.OfferItemCatalog
 	return &OfferItemMappingHandler{
-		columnMap:         deps.Mapping.Parse(),
+		columnMap:         deps.Mapping.GetColumnMapConfig(),
 		sourcePath:        conf.SourcePath,
 		successReportPath: conf.SuccessResultPath,
 	}

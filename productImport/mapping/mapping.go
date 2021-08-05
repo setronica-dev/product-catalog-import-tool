@@ -7,31 +7,28 @@ import (
 	"os"
 )
 
-const (
-	categoryKey  = "Category" // TS min required column
-	productIdKey = "ID"       // TS min required
-	nameKey      = "Name"
-)
 
 type mapping struct {
-	rawMap map[string]string
+	rawMap    map[string]string
+	parsedMap *ColumnMapConfig
 }
 
 func NewMappingHandler(deps Deps) MappingHandlerInterface {
 	rawMap := mapping{}
-	rawMap.Init(deps.Config.ProductCatalog.MappingPath)
+	rawMap.init(deps.Config.ProductCatalog.MappingPath)
+	rawMap.parsedMap = rawMap.NewColumnMap(rawMap.rawMap)
 	return &rawMap
 }
 
-func (m *mapping) Init(path string) map[string]string {
-	var columnMap map[string]string
+func (m *mapping) init(path string) map[string]string {
+	var rawColumnMap map[string]string
 	if path != "" {
 		if _, err := os.Stat(path); !os.IsNotExist(err) {
 			m.upload(path)
-			columnMap = m.Get()
+			rawColumnMap = m.Get()
 		}
 	}
-	return columnMap
+	return rawColumnMap
 }
 
 func (m *mapping) upload(mappingConfigPath string) {
@@ -50,25 +47,6 @@ func (m *mapping) Get() map[string]string {
 	return m.rawMap
 }
 
-func (m *mapping) Parse() *ColumnMap {
-	rawMap := m.Get()
-	parsedMap := ColumnMap{}
-	if rawMap[categoryKey] != "" {
-		parsedMap.Category = rawMap[categoryKey]
-	} else {
-		parsedMap.Category = categoryKey
-	}
-
-	if rawMap[productIdKey] != "" {
-		parsedMap.ProductID = rawMap[productIdKey]
-	} else {
-		parsedMap.ProductID = productIdKey
-	}
-
-	if rawMap[nameKey] != "" {
-		parsedMap.Name = rawMap[nameKey]
-	} else {
-		parsedMap.Name = nameKey
-	}
-	return &parsedMap
+func (m *mapping) GetColumnMapConfig() *ColumnMapConfig {
+	return m.parsedMap
 }

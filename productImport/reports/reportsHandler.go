@@ -2,29 +2,17 @@ package reports
 
 import (
 	"go.uber.org/dig"
-	"strings"
 	"ts/adapters"
 	"ts/productImport/mapping"
 	"ts/productImport/product"
 )
 
-const (
-	idIndex       = 0
-	categoryIndex = 1
-)
-
-type ColumnMap struct {
-	Category  string
-	ProductID string
-	Name      string
-}
-
 type ReportsHandler struct {
-	Handler        adapters.HandlerInterface
-	Header         *ReportLabels
-	ColumnMap      *ColumnMap
-	FileManager    *adapters.FileManager
-	productHandler product.ProductHandlerInterface
+	Handler         adapters.HandlerInterface
+	Header          *ReportLabels
+	ColumnMapConfig *mapping.ColumnMapConfig
+	FileManager     *adapters.FileManager
+	productHandler  product.ProductHandlerInterface
 }
 
 type Deps struct {
@@ -38,18 +26,14 @@ type Deps struct {
 func NewReportsHandler(deps Deps) *ReportsHandler {
 	h := deps.Handler
 	h.Init(adapters.CSV)
-	m := deps.Mapping.Parse()
+	m := deps.Mapping.GetColumnMapConfig()
 
 	return &ReportsHandler{
-		Handler:        h,
-		FileManager:    deps.FileManager,
-		productHandler: deps.ProductHandler,
-		ColumnMap: &ColumnMap{
-			Category:  m.Category,
-			ProductID: m.ProductID,
-			Name:      m.Name,
-		},
-		Header: initFirstRaw(m),
+		Handler:         h,
+		FileManager:     deps.FileManager,
+		productHandler:  deps.ProductHandler,
+		ColumnMapConfig: m,
+		Header:          initFailuresReportHeader(m),
 	}
 }
 
@@ -78,18 +62,8 @@ func (r *ReportsHandler) buildPath(feedPath string, isError bool) string {
 	}
 }
 
-func (r *ReportsHandler) buildFailuresReportData(report []Report) [][]string {
-	var res [][]string
-	res = append(res, r.buildHeaderRaw())
 
-	for _, item := range report {
-		recordItem := r.buildRaw(item)
-		res = append(res, recordItem)
-	}
-	return res
-}
-
-func initFirstRaw(m *mapping.ColumnMap) *ReportLabels {
+func initFailuresReportHeader(m *mapping.ColumnMapConfig) *ReportLabels {
 	labels := ReportLabels{
 		CategoryName: "Category Name",
 		AttrName:     "Attribute Name*",
@@ -119,39 +93,4 @@ func initFirstRaw(m *mapping.ColumnMap) *ReportLabels {
 	}
 
 	return &labels
-}
-
-func (r *ReportsHandler) buildRaw(item Report) []string {
-	return []string{
-		item.ProductId,
-		item.Name,
-		item.Category,
-		item.CategoryName,
-		item.AttrName,
-		item.AttrValue,
-		item.UoM,
-		strings.Join(item.Errors, " "),
-		item.Description,
-		item.DataType,
-		item.IsMandatory,
-		item.CodedVal,
-	}
-}
-
-func (r *ReportsHandler) buildHeaderRaw() []string {
-	header := r.Header
-	return []string{
-		header.ProductId,
-		header.Name,
-		header.Category,
-		header.CategoryName,
-		header.AttrName,
-		header.AttrValue,
-		header.UoM,
-		header.Errors,
-		header.Description,
-		header.DataType,
-		header.IsMandatory,
-		header.CodedVal,
-	}
 }
