@@ -7,7 +7,7 @@ import (
 	"ts/utils"
 )
 
-func XLSXToCSV(sourceFilePath string, sheet string, headerLinesCount int, destinationFilePath string) (bool, error) {
+func XLSXToCSV(sourceFilePath string, sheet string, headerRowsToSkip int, destinationFilePath string) (bool, error) {
 	data, err := xlsxFile.Read(sourceFilePath, sheet)
 
 	if err != nil {
@@ -16,7 +16,7 @@ func XLSXToCSV(sourceFilePath string, sheet string, headerLinesCount int, destin
 	if len(data) == 0 {
 		return false, nil
 	}
-	clearedData := clearEmptyData(data, headerLinesCount)
+	clearedData := clearEmptyData(data, headerRowsToSkip)
 	if len(clearedData) == 0 {
 		return false, nil
 	}
@@ -29,16 +29,16 @@ func XLSXToCSV(sourceFilePath string, sheet string, headerLinesCount int, destin
 	return true, nil
 }
 
-func clearEmptyData(data [][]string, headerLinesCount int) [][]string {
+func clearEmptyData(data [][]string, headerRowsToSkip int) [][]string {
 	// will be removed when all sheet's headers will be configurable
-	if headerLinesCount == 0 {
+	if headerRowsToSkip == 0 {
 		return data
 	}
 
 	var res [][]string
-	columnIndexes := getValidColumnIndexes(data[headerLinesCount])
+	columnIndexes := getValidColumnIndexes(data[headerRowsToSkip])
 
-	for _, row := range data[headerLinesCount:] {
+	for _, row := range data[headerRowsToSkip:] {
 		if !utils.IsEmptyRow(row) {
 			cells := getValidRowCells(row, columnIndexes)
 			res = append(res, cells)

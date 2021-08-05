@@ -42,8 +42,8 @@ type SheetConfig struct {
 }
 
 type SheetParamsConfig struct {
-	Name            string
-	HeaderRowsCount int
+	Name             string
+	HeaderRowsToSkip int
 }
 
 type TradeshiftAPIConfig struct {
