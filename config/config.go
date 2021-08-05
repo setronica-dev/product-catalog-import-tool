@@ -4,6 +4,7 @@ import (
 	"gopkg.in/yaml.v3"
 	"io/ioutil"
 	"log"
+	"ts/config/configModels"
 )
 
 const (
@@ -20,7 +21,7 @@ func Init() {
 	}
 
 	// unmarshal into the tmp raw config
-	rawServiceConfig := &RawServiceConfig{}
+	rawServiceConfig := &configModels.RawServiceConfig{}
 	if err := yaml.Unmarshal(data, rawServiceConfig); err != nil {
 		log.Fatalf("unable to unmarshal config file %s\n%s", serviceConfigPath, err)
 	}
@@ -34,12 +35,12 @@ func Init() {
 }
 
 type Config struct {
-	Service          ServiceConfig
-	ProductCatalog   ProductCatalogConfig
-	OfferCatalog     OfferCatalogConfig
-	OfferItemCatalog OfferItemCatalogConfig
-	CommonConfig     CommonConfig
-	TradeshiftAPI    TradeshiftAPIConfig
+	Service          configModels.ServiceConfig
+	ProductCatalog   configModels.ProductCatalogConfig
+	OfferCatalog     configModels.OfferCatalogConfig
+	OfferItemCatalog configModels.OfferItemCatalogConfig
+	CommonConfig     configModels.CommonConfig
+	TradeshiftAPI    configModels.TradeshiftAPIConfig
 }
 
 func Get() *Config {
@@ -48,7 +49,7 @@ func Get() *Config {
 	return result
 }
 
-func configFromRaw(rawService *RawServiceConfig) *Config {
+func configFromRaw(rawService *configModels.RawServiceConfig) *Config {
 	p := rawService.ProductCatalogConfig
 	t := rawService.TradeshiftAPIConfig
 	o := rawService.OfferCatalogConfig
