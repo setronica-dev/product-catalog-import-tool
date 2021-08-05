@@ -77,12 +77,12 @@ func (i *ImportOfferHandler) ImportOffer(
 		return OfferFound, nil
 	}
 
-	code, err := i.createOffer(offerName, buyerID, startDate, endDate, countries)
+	_, err = i.createOffer(offerName, buyerID, startDate, endDate, countries)
 	if err != nil {
 		return Failed, err
 	}
 
-	log.Printf("new offer was created: \"%v\"", code)
+	log.Printf("New offer with name %v has been created", offerName)
 	return OfferCreated, nil
 }
 

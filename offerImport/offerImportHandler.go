@@ -37,7 +37,7 @@ func NewOfferImportHandler(deps Deps) *OfferImportHandler {
 func (o *OfferImportHandler) RunCSV() {
 	sourceFileNames := adapters.GetFiles(o.sourcePath)
 	if len(sourceFileNames) == 0 {
-		log.Printf("Offer Import failed: please, put file with offers into %v", o.sourcePath)
+		log.Println("Source to import offers isn’t found. Skip step.")
 		return
 	}
 
