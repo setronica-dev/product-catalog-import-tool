@@ -27,7 +27,7 @@ common:
     failures: "Attributes"
     offer_items:
       name: "Prices"
-      header_columns_count: 2
+      header_rows_to_skip: 2
 
 tradeshift_api:
   # set Tradeshift API parameters from API Access To Own Account in Tradeshift pannel

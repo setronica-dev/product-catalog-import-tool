@@ -9,19 +9,19 @@ import (
 
 type XLSXSheetToCSVConverter struct {
 	sheet                 string
-	headerRowsCount       int
+	headerRowsToSkip      int
 	destinationPath       string
 	destinationFileSuffix string
 }
 
 func NewXLSXSheetToCSVConverter(
 	sheetName string,
-	headerRowsCount int,
+	headerRowsToSkip int,
 	destinationPath string,
 	suffix string) *XLSXSheetToCSVConverter {
 	return &XLSXSheetToCSVConverter{
 		sheet:                 sheetName,
-		headerRowsCount:       headerRowsCount,
+		headerRowsToSkip:      headerRowsToSkip,
 		destinationPath:       destinationPath,
 		destinationFileSuffix: suffix,
 	}
@@ -29,7 +29,7 @@ func NewXLSXSheetToCSVConverter(
 
 func (c *XLSXSheetToCSVConverter) Convert(filePath string) error {
 	destinationPath := c.buildPath(filePath)
-	_, err := file.XLSXToCSV(filePath, c.sheet, c.headerRowsCount, destinationPath)
+	_, err := file.XLSXToCSV(filePath, c.sheet, c.headerRowsToSkip, destinationPath)
 	return err
 }
 
