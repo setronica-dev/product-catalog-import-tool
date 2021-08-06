@@ -7,6 +7,7 @@ import (
 	"ts/adapters"
 	offerItemMapping2 "ts/offerItemImport/offerItemMapping"
 	"ts/outwardImport"
+	"ts/outwardImport/importToTradeshift"
 )
 
 type OfferItemImportHandler struct {
@@ -37,6 +38,7 @@ func (oi *OfferItemImportHandler) Run() {
 		return
 	}
 
+	log.Println("Import offeritems to Tradeshift has been started")
 	for _, fileName := range files {
 		err := oi.runOfferItemImportFlow(fileName)
 		if err != nil {
@@ -71,7 +73,6 @@ func (oi *OfferItemImportHandler) importToTradeshift(fileName string) error {
 	if err != nil {
 		return err
 	}
-	log.Printf("offer items import was complete with state %v", state)
 	err = oi.outwardImportHandler.BuildProductAndOffersImportReport(
 		actionID,
 		filepath.Join(
@@ -79,6 +80,12 @@ func (oi *OfferItemImportHandler) importToTradeshift(fileName string) error {
 			fmt.Sprintf("report_offer_items_%v", fileName)))
 	if err != nil {
 		return err
+	}
+	switch state {
+	case importToTradeshift.CompleteImportState:
+		log.Println("Import has been finished successfully")
+	default:
+		log.Printf("Import has been finished with errors. See report here '%v'", oi.reportPath)
 	}
 	return nil
 }

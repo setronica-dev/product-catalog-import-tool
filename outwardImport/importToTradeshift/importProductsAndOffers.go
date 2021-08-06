@@ -2,7 +2,6 @@ package importToTradeshift
 
 import (
 	"fmt"
-	"log"
 	"os"
 	"time"
 )
@@ -10,8 +9,8 @@ import (
 const (
 	inProgressImportState        = "in_progress"
 	initImportState              = "init"
-	completeImportState          = "complete"
-	completeWithErrorImportState = "complete_with_error"
+	CompleteImportState          = "complete"
+	CompleteWithErrorImportState = "complete_with_error"
 	identifier                   = "ID"
 	retriesDelay                 = 1 * time.Second
 )
@@ -42,8 +41,6 @@ func (ti *TradeshiftImport) runSupplierImport(sourceFilePath string, isOfferItem
 		return "", fmt.Errorf("failed file upload %v", err)
 	}
 	fileID := fmt.Sprintf("%s", r["id"])
-
-	log.Println("uploaded file with file_id:", fileID)
 
 	//import file
 	actionID, err := api.RunImportAction(fmt.Sprintf("%s", fileID), ti.tsConfig.tsCurrency, ti.tsConfig.tsLocale, isOfferItemsImport)
@@ -80,23 +77,10 @@ func (ti *TradeshiftImport) WaitForImportComplete(actionID string) (string, erro
 			return "error", err
 		}
 	}
-	if !isImportCompleted(currentState) {
-		return currentState, fmt.Errorf("import failed with state %v", currentState)
-	}
-
 	return currentState, nil
 }
 
 func (ti *TradeshiftImport) getImportState(actionID string) (string, error) {
 	res, err := ti.transport.GetActionResult(actionID)
 	return fmt.Sprintf("%s", res["state"]), err
-}
-
-func isImportCompleted(state string) bool {
-	switch state {
-	case completeImportState, completeWithErrorImportState:
-		return true
-	default:
-		return false
-	}
 }
