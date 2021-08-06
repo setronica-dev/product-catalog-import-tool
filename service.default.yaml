@@ -39,3 +39,6 @@ tradeshift_api:
   tenant_id:
   currency:
   file_locale:
+  recipients:
+    - id:
+      name:
