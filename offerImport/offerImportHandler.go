@@ -49,19 +49,20 @@ func (o *OfferImportHandler) RunCSV() {
 func (o *OfferImportHandler) runOfferImportFlow(fileName string) {
 	offers, err := o.uploadOffers(fileName)
 	if err != nil {
-		log.Printf("Offer Import failed: source file was not replaced: %v", err)
+		log.Printf("An error occurred while uploading the offer: %v. Skip step", err)
+		return
 	}
 
 	o.importHandler.ImportOffers(offers)
 }
 
 func (o *OfferImportHandler) uploadOffers(fileName string) ([]offerReader.RawOffer, error) {
-	log.Printf("Offer Import for %v was started", fileName)
+	log.Printf("Offers file processing '%v' has been started", fileName)
 
 	offers := o.offerReader.UploadOffers(filepath.Join(o.sourcePath, fileName))
 	if len(offers) == 0 {
 		return nil, fmt.Errorf(
-			"Offer Upload failed: 0 offers were loaded from %v. Please, check file and try again",
+			"0 offers were loaded from %v. Please, check file and try again",
 			o.sourcePath)
 	}
 	err := o.processSourceFile(fileName)

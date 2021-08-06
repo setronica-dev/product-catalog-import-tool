@@ -9,6 +9,7 @@ import (
 	"ts/config"
 	"ts/externalAPI/tradeshiftAPI"
 	"ts/outwardImport"
+	"ts/outwardImport/importToTradeshift"
 )
 
 type TradeshiftHandler struct {
@@ -19,9 +20,6 @@ type TradeshiftHandler struct {
 	reportPath           string
 }
 
-const (
-	completeImportState = "complete"
-)
 
 type DepsH struct {
 	dig.In
@@ -67,10 +65,13 @@ func (th *TradeshiftHandler) ImportFeedToTradeshift(
 	if err != nil {
 		return err
 	}
-	if state == completeImportState {
-		log.Printf("IMPORT TO TRADESHIFT WAS FINISHED: see report in %s", th.filemanager.ReportPath)
-	} else {
-		log.Printf("FAILED TO IMPORT VALID FEED TO TRADESHIFT: see report in %v", th.filemanager.ReportPath)
+	switch state {
+	case importToTradeshift.CompleteImportState:
+		log.Println("Import has been finished successfully")
+	case importToTradeshift.CompleteWithErrorImportState:
+		log.Printf("Import has been finished with errors. See report here '%v'", th.filemanager.ReportPath)
+	default:
+		log.Printf("Import has been failed. See report here '%v'", th.filemanager.ReportPath)
 	}
 	return nil
 }
