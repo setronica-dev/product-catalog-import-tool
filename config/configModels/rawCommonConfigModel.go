@@ -14,8 +14,8 @@ type RawSheetConfig struct {
 }
 
 type RawSheetParamsConfig struct {
-	Name               string `yaml:"name"`
-	HeaderColumnsCount int    `yaml:"header_columns_count"`
+	Name             string `yaml:"name"`
+	HeaderRowsToSkip int    `yaml:"header_rows_to_skip"`
 }
 
 func (c *RawCommonCatalogConfig) ToConfig() *CommonConfig {
@@ -33,7 +33,7 @@ func (c *RawCommonCatalogConfig) ToConfig() *CommonConfig {
 
 func (c *RawSheetParamsConfig) ToConfig() *SheetParamsConfig {
 	return &SheetParamsConfig{
-		Name:            c.Name,
-		HeaderRowsCount: c.HeaderColumnsCount,
+		Name:             c.Name,
+		HeaderRowsToSkip: c.HeaderRowsToSkip,
 	}
 }
