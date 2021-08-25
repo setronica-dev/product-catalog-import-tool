@@ -3,22 +3,24 @@ package reports
 import (
 	"go.uber.org/dig"
 	"ts/adapters"
+	"ts/config"
 	"ts/productImport/mapping"
 	"ts/productImport/product"
 )
 
 type ReportsHandler struct {
-	Handler         adapters.HandlerInterface
-	Header          *ReportLabels
-	ColumnMapConfig *mapping.ColumnMapConfig
-	FileManager     *adapters.FileManager
-	productHandler  product.ProductHandlerInterface
+	Handler           adapters.HandlerInterface
+	Header            *ReportLabels
+	ColumnMapConfig   *mapping.ColumnMapConfig
+	productHandler    product.ProductHandlerInterface
+	SuccessResultPath string
+	FailResultPath    string
 }
 
 type Deps struct {
 	dig.In
+	Config         *config.Config
 	Handler        adapters.HandlerInterface
-	FileManager    *adapters.FileManager
 	Mapping        mapping.MappingHandlerInterface
 	ProductHandler product.ProductHandlerInterface
 }
@@ -27,13 +29,15 @@ func NewReportsHandler(deps Deps) *ReportsHandler {
 	h := deps.Handler
 	h.Init(adapters.CSV)
 	m := deps.Mapping.GetColumnMapConfig()
+	conf := deps.Config.ProductCatalog
 
 	return &ReportsHandler{
-		Handler:         h,
-		FileManager:     deps.FileManager,
-		productHandler:  deps.ProductHandler,
-		ColumnMapConfig: m,
-		Header:          initFailuresReportHeader(m),
+		Handler:           h,
+		productHandler:    deps.ProductHandler,
+		ColumnMapConfig:   m,
+		Header:            initFailedAttributesReportHeader(m),
+		SuccessResultPath: conf.SuccessResultPath,
+		FailResultPath:    conf.FailResultPath,
 	}
 }
 
@@ -43,27 +47,17 @@ func (r *ReportsHandler) WriteReport(
 	report []Report,
 	sourceData []map[string]interface{},
 ) string {
-	var data [][]string
-	path := r.buildPath(feedPath, isError)
+	var path string
 	if isError {
-		data = r.buildFailuresReportData(report)
+		path = r.writeFailedReport(report, feedPath)
 	} else {
-		data = r.buildSuccessData(report, sourceData)
+		path = r.writeSuccessReport(report, sourceData, feedPath)
 	}
-	r.Handler.Write(path, data)
+
 	return path
 }
 
-func (r *ReportsHandler) buildPath(feedPath string, isError bool) string {
-	if isError {
-		return r.FileManager.BuildFailReportPath(feedPath)
-	} else {
-		return r.FileManager.BuildSuccessReportPath(feedPath)
-	}
-}
-
-
-func initFailuresReportHeader(m *mapping.ColumnMapConfig) *ReportLabels {
+func initFailedAttributesReportHeader(m *mapping.ColumnMapConfig) *ReportLabels {
 	labels := ReportLabels{
 		CategoryName: "Category Name",
 		AttrName:     "Attribute Name*",

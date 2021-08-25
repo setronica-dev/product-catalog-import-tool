@@ -54,28 +54,8 @@ func GetFileType(filePath string) FileType {
 	}
 }
 
-func (m *FileManager) BuildFailReportPath(feedPath string) string {
-	return fmt.Sprintf("%v/%v", m.FailResultFolderPath, m.buildFailFileName(feedPath))
-}
-
-func (m *FileManager) BuildSuccessReportPath(feedPath string) string {
-	return fmt.Sprintf("%v/%v", m.SuccessResultFolderPath, m.buildSuccessFileName(feedPath))
-}
-
 func (m *FileManager) BuildTradeshiftImportResultsPath(feedPath string) string {
 	return fmt.Sprintf("%v/%v", m.ReportPath, m.buildImportResultsFileName(feedPath))
-}
-
-func (m *FileManager) buildFailFileName(feedPath string) string {
-	ext := filepath.Ext(feedPath)
-	sourceFileName := GetFileName(feedPath)
-	return fmt.Sprintf("%v-failures%v", sourceFileName, ext)
-}
-
-func (m *FileManager) buildSuccessFileName(feedPath string) string {
-	ext := filepath.Ext(feedPath)
-	sourceFileName := GetFileName(feedPath)
-	return fmt.Sprintf("%v%v", sourceFileName, ext)
 }
 
 func (m *FileManager) buildImportResultsFileName(feedPath string) string {

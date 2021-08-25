@@ -2,6 +2,8 @@ package reports
 
 import (
 	"fmt"
+	"path/filepath"
+	"ts/adapters"
 	"ts/productImport/mapping"
 	"ts/utils"
 )
@@ -12,6 +14,20 @@ const (
 	tsCategoryKey  = "Category"
 	tsProductIdKey = "ID"
 )
+
+func (r *ReportsHandler) writeSuccessReport(report []Report, sourceData []map[string]interface{}, feedFilePath string) string {
+	filePath := filepath.Join(r.SuccessResultPath, buildSuccessFileName(feedFilePath))
+	var data [][]string
+	data = r.buildSuccessData(report, sourceData)
+	r.Handler.Write(filePath, data)
+	return filePath
+}
+
+func buildSuccessFileName(feedPath string) string {
+	ext := filepath.Ext(feedPath)
+	sourceFileName := adapters.GetFileName(feedPath)
+	return fmt.Sprintf("%v%v", sourceFileName, ext)
+}
 
 func (r *ReportsHandler) buildSuccessData(report []Report, source []map[string]interface{}) [][]string {
 	var res [][]string
@@ -47,7 +63,7 @@ func getSortedHeader(sourceRow map[string]interface{}, columnMapConfig *mapping.
 			otherKeys = append(otherKeys, k)
 		}
 	}
-	res:=make( []string, len(requiredKeys)+len(otherKeys))
+	res := make([]string, len(requiredKeys)+len(otherKeys))
 	copy(res, requiredKeys)
 	copy(res[len(requiredKeys):], otherKeys)
 	return res
