@@ -39,7 +39,7 @@ func NewPrepareImportHandler(deps Deps) *Handler {
 			commonConf.Sheet.Failures,
 			0,
 			conf.ProductCatalog.SourcePath,
-			"-failures"),
+			"_attributes"),
 		offerConverter: NewXLSXSheetToCSVConverter(
 			commonConf.Sheet.Offers,
 			0,

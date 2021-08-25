@@ -64,8 +64,8 @@ func Test_initFirstRaw(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			if got := initFailuresReportHeader(tt.args.m); !reflect.DeepEqual(got, tt.want) {
-				t.Errorf("initFailuresReportHeader() = %v, want %v", got, tt.want)
+			if got := initFailedAttributesReportHeader(tt.args.m); !reflect.DeepEqual(got, tt.want) {
+				t.Errorf("initFailedAttributesReportHeader() = %v, want %v", got, tt.want)
 			}
 		})
 	}
@@ -300,7 +300,6 @@ func TestReportsHandler_buildSuccessMapRaw(t *testing.T) {
 				Handler:         tt.fields.Handler,
 				Header:          tt.fields.Header,
 				ColumnMapConfig: tt.fields.ColumnMapConfig,
-				FileManager:     tt.fields.FileManager,
 				productHandler:  tt.fields.ProductHandler,
 			}
 			if got := r.buildSuccessMapRaw(tt.args.source, tt.args.reportItems); !reflect.DeepEqual(got, tt.want) {
