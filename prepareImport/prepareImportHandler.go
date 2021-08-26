@@ -44,12 +44,12 @@ func NewPrepareImportHandler(deps Deps) *Handler {
 			commonConf.Sheet.Offers,
 			0,
 			conf.OfferCatalog.SourcePath,
-			""),
+			"_offers"),
 		offerItemConverter: NewXLSXSheetToCSVConverter(
 			commonConf.Sheet.OfferItems.Name,
 			commonConf.Sheet.OfferItems.HeaderRowsToSkip,
 			conf.OfferItemCatalog.SourcePath,
-			""),
+			"_offer_items"),
 	}
 }
 
