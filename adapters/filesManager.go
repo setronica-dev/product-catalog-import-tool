@@ -12,12 +12,10 @@ import (
 
 //TODO: needs cleanup
 type FileManager struct {
-	SourcePath                 string
-	SecondValidationSourcePath string
-	MappingPath                string
-	OntologyPath               string
-	ReportPath                 string
-
+	SourcePath              string
+	MappingPath             string
+	OntologyPath            string
+	ReportPath              string
 	SentPath                string
 	InProgressPath          string
 	SuccessResultFolderPath string
@@ -27,16 +25,15 @@ type FileManager struct {
 func NewFileManager(deps Deps) *FileManager {
 	conf := deps.Config.ProductCatalog
 	return &FileManager{
-		SourcePath:                 conf.SourcePath,
-		SecondValidationSourcePath: conf.SecondValidationSourcePath,
-		MappingPath:                conf.MappingPath,
-		OntologyPath:               conf.OntologyPath,
-		ReportPath:                 conf.ReportPath,
+		SourcePath:   conf.SourcePath,
+		MappingPath:  conf.MappingPath,
+		OntologyPath: conf.OntologyPath,
+		ReportPath:   conf.ReportPath,
 
 		SentPath:                conf.SentPath,
 		InProgressPath:          conf.InProgressPath,
 		SuccessResultFolderPath: conf.SuccessResultPath,
-		FailResultFolderPath:    conf.FailResultPath,
+		FailResultFolderPath:    conf.ReportPath,
 	}
 }
 

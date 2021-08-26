@@ -5,15 +5,13 @@ type ServiceConfig struct {
 }
 
 type ProductCatalogConfig struct {
-	SourcePath                 string
-	ReportPath                 string
-	SecondValidationSourcePath string
-	MappingPath                string
-	OntologyPath               string
-	SentPath                   string
-	InProgressPath             string
-	SuccessResultPath          string
-	FailResultPath             string
+	SourcePath        string
+	ReportPath        string
+	MappingPath       string
+	OntologyPath      string
+	SentPath          string
+	InProgressPath    string
+	SuccessResultPath string
 }
 
 type OfferCatalogConfig struct {

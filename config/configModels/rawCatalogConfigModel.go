@@ -2,14 +2,12 @@ package configModels
 
 type RawProductCatalogConfig struct {
 	SourcePath                 string `yaml:"source"`
-	ReportPath                 string `yaml:"report"`
-	SecondValidationSourcePath string `yaml:"source2"`
 	MappingPath                string `yaml:"mapping"`
 	OntologyPath               string `yaml:"ontology"`
 	SentPath                   string `yaml:"sent"`
 	InProgressPath             string `yaml:"in_progress"`
+	ReportPath                 string `yaml:"report"`
 	SuccessResultPath          string `yaml:"success_result"`
-	FailResultPath             string `yaml:"fail_result"`
 }
 
 type RawOfferCatalogConfig struct {
@@ -28,13 +26,11 @@ func (c *RawProductCatalogConfig) ToConfig() *ProductCatalogConfig {
 	return &ProductCatalogConfig{
 		SourcePath:                 c.SourcePath,
 		ReportPath:                 c.ReportPath,
-		SecondValidationSourcePath: c.SecondValidationSourcePath,
 		MappingPath:                c.MappingPath,
 		OntologyPath:               c.OntologyPath,
 		SentPath:                   c.SentPath,
 		InProgressPath:             c.InProgressPath,
 		SuccessResultPath:          c.SuccessResultPath,
-		FailResultPath:             c.FailResultPath,
 	}
 }
 

@@ -1,10 +1,9 @@
 product:
   source: ./data/source/products/
-  report: ./data/result/report/
   sent: ./data/source/processed/products/
   in_progress: ./data/source/inprogress/
+  report: ./data/result/report/
   success_result: ./data/result/sent/
-  fail_result: ./data/result/report/
   mapping: ./data/mapping/mapping.yaml
   ontology: ./data/ontology/rules.csv
 
