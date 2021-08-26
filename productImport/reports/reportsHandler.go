@@ -37,7 +37,7 @@ func NewReportsHandler(deps Deps) *ReportsHandler {
 		ColumnMapConfig:   m,
 		Header:            initFailedAttributesReportHeader(m),
 		SuccessResultPath: conf.SuccessResultPath,
-		FailResultPath:    conf.FailResultPath,
+		FailResultPath:    conf.ReportPath,
 	}
 }
 
