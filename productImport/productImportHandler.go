@@ -103,7 +103,7 @@ func (ph *ProductImportHandler) runProductValidationImportFlow(columnMap map[str
 	// identify fitting report
 	if len(inProgress) > 0 {
 		for _, processingFile := range inProgress {
-			reportFile := findReport(processingFile, utils.SliceDiff(sources, processedSource))
+			reportFile := findAttributeReport(processingFile, utils.SliceDiff(sources, processedSource))
 			if reportFile != "" {
 				processedSource = append(processedSource, reportFile)
 				ph.processFeed(
@@ -200,7 +200,7 @@ func (ph *ProductImportHandler) processFeed(
 			}
 		}
 	} else {
-		log.Printf("FAILURE: check the failure report in '%v', fill it with the data and upload to the '%v' folder.",
+		log.Printf("The validation has found inconsistency in your attributes based on rules. You can find the report here '%v'. You can apply corrections right into this report and upload it into the source folder %v to continue the process.",
 			ph.config.ProductCatalog.ReportPath,
 			ph.config.ProductCatalog.SourcePath)
 		if validationReportPath != "" {
@@ -212,7 +212,7 @@ func (ph *ProductImportHandler) processFeed(
 		}
 	}
 
-	cleanUpFailures(sourceFeedPath, ph.config.ProductCatalog.FailResultPath)
+	cleanUpAttributeReports(sourceFeedPath, ph.config.ProductCatalog.FailResultPath)
 	validationReportPath = ph.reports.WriteReport(sourceFeedPath, hasErrors, feed, parsedData)
 	if !hasErrors {
 		log.Println("IMPORT FEED TO TRADESHIFT WAS STARTED")
@@ -223,12 +223,12 @@ func (ph *ProductImportHandler) processFeed(
 	}
 }
 
-func findReport(inProgressFile string, sources []string) string {
+func findAttributeReport(inProgressFile string, sources []string) string {
 	report := ""
 	pattern := adapters.GetFileName(inProgressFile)
 
 	for _, source := range sources {
-		regexp, _ := regexp.Compile(`(-failures)`)
+		regexp, _ := regexp.Compile(`(_attributes)`)
 		match := regexp.FindStringIndex(source)
 		if len(match) == 2 {
 			name := string(source[0:match[0]])
@@ -240,10 +240,10 @@ func findReport(inProgressFile string, sources []string) string {
 	return report
 }
 
-func cleanUpFailures(sourceFile string, folder string) {
+func cleanUpAttributeReports(sourceFile string, folder string) {
 	reportsList := adapters.GetFiles(folder)
 	for _, source := range reportsList {
-		del := findReport(sourceFile, []string{source})
+		del := findAttributeReport(sourceFile, []string{source})
 		if del != "" {
 			e := os.Remove(folder + "/" + del)
 			if e != nil {
