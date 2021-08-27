@@ -118,7 +118,7 @@ func (ph *ProductImportHandler) runProductValidationImportFlow(columnMap map[str
 					"Please check the failure report in '%v', "+
 					"fill it with the data and appload to the '%v' folder.",
 					ph.config.ProductCatalog.InProgressPath+"/"+processingFile,
-					ph.config.ProductCatalog.FailResultPath,
+					ph.config.ProductCatalog.ReportPath,
 					ph.config.ProductCatalog.SourcePath)
 			}
 		}
@@ -212,7 +212,8 @@ func (ph *ProductImportHandler) processFeed(
 		}
 	}
 
-	cleanUpAttributeReports(sourceFeedPath, ph.config.ProductCatalog.FailResultPath)
+	cleanUpAttributeReports(sourceFeedPath, ph.config.ProductCatalog.ReportPath)
+
 	validationReportPath = ph.reports.WriteReport(sourceFeedPath, hasErrors, feed, parsedData)
 	if !hasErrors {
 		log.Println("IMPORT FEED TO TRADESHIFT WAS STARTED")
