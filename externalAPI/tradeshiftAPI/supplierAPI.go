@@ -3,7 +3,6 @@ package tradeshiftAPI
 import (
 	json "encoding/json"
 	"fmt"
-	"log"
 	"net/url"
 	"strconv"
 	"strings"
@@ -162,7 +161,6 @@ func (t *TradeshiftAPI) UpdateOffer(
 	if countries != nil {
 		data["countries"] = countries
 	}
-	log.Println(data)
 	_, err := t.Client.Put(
 		method,
 		rest.BuildBody(data),

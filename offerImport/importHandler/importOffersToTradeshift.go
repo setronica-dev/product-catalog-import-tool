@@ -22,7 +22,8 @@ func NewImportOfferHandler(deps Deps) ImportOfferInterface {
 }
 
 func (i *ImportOfferHandler) ImportOffers(offers []offerReader.RawOffer) {
-	log.Printf("IMPORT OFFERS TO TRADESHIFT WAS STARTED")
+
+	log.Printf("Import offers to Tradeshift has been started")
 	for _, offer := range offers {
 		if err := validateOffer(offer); err != nil {
 			log.Printf("failed to import offer \"%v\". Reason:  %v", offer, err)
@@ -35,7 +36,7 @@ func (i *ImportOfferHandler) ImportOffers(offers []offerReader.RawOffer) {
 			offer.ExpiresAt,
 			offer.Countries)
 		if err != nil {
-			log.Printf("failed to import offer \"%v\". Reason:  %v", offer.Offer, err)
+			log.Printf("Offer Import occured the error: %v", err)
 		}
 	}
 }
@@ -65,6 +66,7 @@ func (i *ImportOfferHandler) ImportOffer(
 		return Failed, err
 	}
 	if !isFound {
+		log.Printf("Offer '%v' can't be created for unknown buyer '%v'", offerName, buyerID)
 		return BuyerNotFound, nil
 	}
 
@@ -73,10 +75,9 @@ func (i *ImportOfferHandler) ImportOffer(
 		return Failed, err
 	}
 	if isFound {
-		log.Printf("offer \"%v\" was found", offerName)
+		log.Printf("Offer '%v' allready exists", offerName)
 		return OfferFound, nil
 	}
-
 	_, err = i.createOffer(offerName, buyerID, startDate, endDate, countries)
 	if err != nil {
 		return Failed, err

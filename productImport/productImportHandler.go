@@ -90,7 +90,7 @@ func (ph *ProductImportHandler) RunCSV() {
 	// feed
 	err = ph.runProductValidationImportFlow(columnMap, rulesConfig)
 	if err != nil {
-		log.Println(err)
+		log.Printf("Unexpected error: %v", err)
 	}
 }
 
@@ -142,18 +142,18 @@ func (ph *ProductImportHandler) runProductValidationImportFlow(columnMap map[str
 
 func (ph *ProductImportHandler) processFeed(
 	sourceFeedPath string,
-	validationReportPath string,
+	attributesPath string,
 	columnMap map[string]string,
 	ruleConfig *models.OntologyConfig,
 	isInitial bool,
 ) {
 	log.Println("_________________________________")
-	log.Printf("PROCESSING SOURCE: %v", sourceFeedPath)
+	log.Printf("PROCESSING SOURCE: '%v'", sourceFeedPath)
 	var er error
-	if validationReportPath != "" {
-		log.Printf("EDITED REPORT: %v", validationReportPath)
-		if validationReportPath, er = adapters.MoveToPath(validationReportPath, ph.config.ProductCatalog.InProgressPath); er != nil {
-			log.Printf("ERROR COPYING THE '%v' FILE to the  '%v' folder", validationReportPath, ph.config.ProductCatalog.InProgressPath)
+	if attributesPath != "" {
+		log.Printf("PROCESSING REPORT: '%v'", attributesPath)
+		if attributesPath, er = adapters.MoveToPath(attributesPath, ph.config.ProductCatalog.InProgressPath); er != nil {
+			log.Printf("ERROR COPYING THE '%v' FILE to the  '%v' folder", attributesPath, ph.config.ProductCatalog.InProgressPath)
 		}
 	}
 
@@ -164,9 +164,9 @@ func (ph *ProductImportHandler) processFeed(
 	}
 
 	// fixed attributes
-	attributeReportData, err := ph.attributeHandler.InitAttributeData(validationReportPath)
+	attributeReportData, err := ph.attributeHandler.InitAttributeData(attributesPath)
 	if err != nil {
-		log.Printf("failed to upload attributes report %v: %v", validationReportPath, err)
+		log.Printf("failed to upload attributes report %v: %v", attributesPath, err)
 	}
 
 	// source
@@ -189,22 +189,22 @@ func (ph *ProductImportHandler) processFeed(
 	})
 
 	if !hasErrors {
-		log.Printf("SUCCESS: FILE IS VALID. Please check the '%s' folder", ph.config.ProductCatalog.SentPath)
+		log.Printf("DATA IS VALID. Please check the result here '%s'", ph.config.ProductCatalog.SentPath)
 		if _, er = adapters.MoveToPath(sourceFeedPath, ph.config.ProductCatalog.SentPath); er != nil {
 			log.Printf("ERROR COPYING THE SOURCE FILE %v to the '%v' folder", sourceFeedPath, ph.config.ProductCatalog.SentPath)
 		}
 
-		if validationReportPath != "" {
-			if _, er = adapters.MoveToPath(validationReportPath, ph.config.ProductCatalog.SentPath); er != nil {
-				log.Printf("ERROR COPYING THE REPORT FILE %v to the '%v' folder", validationReportPath, ph.config.ProductCatalog.SentPath)
+		if attributesPath != "" {
+			if _, er = adapters.MoveToPath(attributesPath, ph.config.ProductCatalog.SentPath); er != nil {
+				log.Printf("ERROR COPYING THE REPORT FILE %v to the '%v' folder", attributesPath, ph.config.ProductCatalog.SentPath)
 			}
 		}
 	} else {
 		log.Printf("The validation has found inconsistency in your attributes based on rules. You can find the report here '%v'. You can apply corrections right into this report and upload it into the source folder %v to continue the process.",
 			ph.config.ProductCatalog.ReportPath,
 			ph.config.ProductCatalog.SourcePath)
-		if validationReportPath != "" {
-			e := os.Remove(validationReportPath)
+		if attributesPath != "" {
+			e := os.Remove(attributesPath)
 
 			if e != nil {
 				log.Println(e)
@@ -213,13 +213,13 @@ func (ph *ProductImportHandler) processFeed(
 	}
 
 	cleanUpAttributeReports(sourceFeedPath, ph.config.ProductCatalog.ReportPath)
+	attributesPath = ph.reports.WriteReport(sourceFeedPath, hasErrors, feed, parsedData)
 
-	validationReportPath = ph.reports.WriteReport(sourceFeedPath, hasErrors, feed, parsedData)
 	if !hasErrors {
-		log.Println("IMPORT FEED TO TRADESHIFT WAS STARTED")
-		er := ph.importHandler.ImportFeedToTradeshift(validationReportPath)
+		log.Println("Import products to Tradeshift has been started")
+		er := ph.importHandler.ImportFeedToTradeshift(attributesPath)
 		if er != nil {
-			log.Printf("FAILED TO IMPORT VALID FEED TO TRADESHIFT. Reason: %v", er)
+			log.Printf("Import has been failed, report was not built. Reason: %v", er)
 		}
 	}
 }

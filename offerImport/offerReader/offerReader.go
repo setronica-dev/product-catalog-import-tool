@@ -48,7 +48,6 @@ func (o *OfferReader) UploadOffers(path string) []RawOffer {
 		return nil
 	}
 	or := processOffers(parsedRaws, header)
-	log.Printf("Offers upload finished.")
 	return or
 }
 
