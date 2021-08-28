@@ -27,27 +27,28 @@ type Deps struct {
 func NewPrepareImportHandler(deps Deps) *Handler {
 	conf := deps.Config
 	commonConf := deps.Config.CommonConfig
+	sheetsConf := commonConf.Sheets
 	return &Handler{
 		sourcePath: commonConf.SourcePath,
 		sentPath:   commonConf.SentPath,
 		productConverter: NewXLSXSheetToCSVConverter(
-			commonConf.Sheet.Products,
-			0,
+			sheetsConf.Products.Name,
+			sheetsConf.Products.HeaderRowsToSkip,
 			conf.ProductCatalog.InProgressPath,
 			""),
 		failuresConverter: NewXLSXSheetToCSVConverter(
-			commonConf.Sheet.Failures,
-			0,
+			sheetsConf.Failures.Name,
+			sheetsConf.Failures.HeaderRowsToSkip,
 			conf.ProductCatalog.SourcePath,
 			"_attributes"),
 		offerConverter: NewXLSXSheetToCSVConverter(
-			commonConf.Sheet.Offers,
-			0,
+			sheetsConf.Offers.Name,
+			sheetsConf.Offers.HeaderRowsToSkip,
 			conf.OfferCatalog.SourcePath,
 			"_offers"),
 		offerItemConverter: NewXLSXSheetToCSVConverter(
-			commonConf.Sheet.OfferItems.Name,
-			commonConf.Sheet.OfferItems.HeaderRowsToSkip,
+			sheetsConf.OfferItems.Name,
+			sheetsConf.OfferItems.HeaderRowsToSkip,
 			conf.OfferItemCatalog.SourcePath,
 			"_offer_items"),
 	}

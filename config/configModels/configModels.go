@@ -29,13 +29,13 @@ type OfferItemCatalogConfig struct {
 type CommonConfig struct {
 	SourcePath string
 	SentPath   string
-	Sheet      *SheetConfig
+	Sheets     *SheetsConfig
 }
 
-type SheetConfig struct {
-	Products   string
-	Offers     string
-	Failures   string
+type SheetsConfig struct {
+	Products   *SheetParamsConfig
+	Offers     *SheetParamsConfig
+	Failures   *SheetParamsConfig
 	OfferItems *SheetParamsConfig
 }
 
