@@ -7,10 +7,10 @@ type RawCommonCatalogConfig struct {
 }
 
 type RawSheetConfig struct {
-	Products   string               `yaml:"products"`
-	Offers     string               `yaml:"offers"`
+	Products   RawSheetParamsConfig `yaml:"products"`
+	Offers     RawSheetParamsConfig `yaml:"offers"`
 	OfferItems RawSheetParamsConfig `yaml:"offer_items"`
-	Failures   string               `yaml:"failures"`
+	Failures   RawSheetParamsConfig `yaml:"failures"`
 }
 
 type RawSheetParamsConfig struct {
@@ -22,10 +22,10 @@ func (c *RawCommonCatalogConfig) ToConfig() *CommonConfig {
 	return &CommonConfig{
 		SourcePath: c.SourcePath,
 		SentPath:   c.SentPath,
-		Sheet: &SheetConfig{
-			Products:   c.Sheet.Products,
-			Offers:     c.Sheet.Offers,
-			Failures:   c.Sheet.Failures,
+		Sheets: &SheetsConfig{
+			Products:   c.Sheet.Products.ToConfig(),
+			Offers:     c.Sheet.Offers.ToConfig(),
+			Failures:   c.Sheet.Failures.ToConfig(),
 			OfferItems: c.Sheet.OfferItems.ToConfig(),
 		},
 	}

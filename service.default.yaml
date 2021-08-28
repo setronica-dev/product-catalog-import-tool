@@ -21,9 +21,15 @@ common:
   source: ./data/source/
   sent: ./data/source/processed/
   sheet:
-    products: "Products"
-    offers: "Offers"
-    failures: "Attributes"
+    products:
+      name: "Products"
+      header_rows_to_skip: 2
+    offers:
+      name: "Offers"
+      header_rows_to_skip: 2
+    failures:
+      name: "Attributes"
+      header_rows_to_skip: 2
     offer_items:
       name: "Prices"
       header_rows_to_skip: 2
