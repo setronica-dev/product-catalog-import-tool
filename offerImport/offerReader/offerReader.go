@@ -10,19 +10,19 @@ import (
 	"ts/utils"
 )
 
-const dateLayout = "2006-01-02"
+const DateLayout = "2006-01-02"
 
 type OfferReader struct {
 	reader adapters.HandlerInterface
 }
 
 type RawOffer struct {
-	Offer     string
-	Receiver  string
-	Contract  string
-	ValidFrom *time.Time
-	ExpiresAt *time.Time
-	Countries []string
+	Offer        string
+	ReceiverName string
+	Contract     string
+	ValidFrom    time.Time
+	ExpiresAt    time.Time
+	Countries    []string
 }
 
 type Deps struct {
@@ -72,24 +72,24 @@ func processOffer(header *RawHeader, row map[string]interface{}) *RawOffer {
 	}
 
 	offer := RawOffer{
-		Offer:    fmt.Sprintf("%v", row[header.Offer]),
-		Receiver: fmt.Sprintf("%v", row[header.Receiver]),
+		Offer:        fmt.Sprintf("%v", row[header.Offer]),
+		ReceiverName: fmt.Sprintf("%v", row[header.Receiver]),
 	}
 	if header.ContractID != "" && row[header.ContractID] != "" {
 		offer.Contract = fmt.Sprintf("%v", row[header.ContractID])
 	}
 	if header.ValidFrom != "" && row[header.ValidFrom] != "" {
-		date, err := time.Parse(dateLayout, fmt.Sprintf("%v", row[header.ValidFrom]))
+		date, err := time.Parse(DateLayout, fmt.Sprintf("%v", row[header.ValidFrom]))
 		if err == nil {
-			offer.ValidFrom = &date
+			offer.ValidFrom = date
 		} else {
 			log.Printf("invalid format of \"valid_from\" field: should be YYYY-MM-DD: %v", err)
 		}
 	}
 	if header.ExpiresAt != "" && row[header.ExpiresAt] != "" {
-		date, err := time.Parse(dateLayout, fmt.Sprintf("%v", row[header.ExpiresAt]))
+		date, err := time.Parse(DateLayout, fmt.Sprintf("%v", row[header.ExpiresAt]))
 		if err == nil {
-			offer.ExpiresAt = &date
+			offer.ExpiresAt = date
 		} else {
 			log.Printf("invalid format of \"expies_at\" field: should be YYYY-MM-DD: %v", err)
 		}
@@ -101,7 +101,7 @@ func processOffer(header *RawHeader, row map[string]interface{}) *RawOffer {
 }
 
 func getCountries(input interface{}) []string {
-	return strings.SplitN(fmt.Sprintf("%v", input), ",", -1)
+	return strings.SplitN(strings.ToLower(fmt.Sprintf("%v", input)), ",", -1)
 }
 
 func processHeader(parsedHeader []string) (*RawHeader, error) {
