@@ -4,8 +4,6 @@ import (
 	"fmt"
 	"path/filepath"
 	"ts/adapters"
-	"ts/productImport/mapping"
-	"ts/utils"
 )
 
 const (
@@ -14,6 +12,8 @@ const (
 	tsCategoryKey  = "Category"
 	tsProductIdKey = "ID"
 )
+
+
 
 func (r *ReportsHandler) writeSuccessReport(report []Report, sourceData []map[string]interface{}, feedFilePath string) string {
 	filePath := filepath.Join(r.SuccessResultPath, buildSuccessFileName(feedFilePath))
@@ -33,65 +33,6 @@ func (r *ReportsHandler) buildSuccessData(report []Report, source []map[string]i
 	var res [][]string
 	res = r.buildSuccessMapRaw(source, report)
 	return res
-}
-
-func buildSuccessReportHeader(sourceRow map[string]interface{}, reportItems []Report, columnMapConfig *mapping.ColumnMapConfig) ([]string, map[string]int64) {
-	sourceHeaderKeys := getSortedHeader(sourceRow, columnMapConfig)
-	headerTs, headerIndex := buildProductsHeaderPart(sourceHeaderKeys, columnMapConfig)
-
-	//check all the ontology attribute columns are defined and if not - extend headerIndex and headerTs
-	for _, reportItem := range reportItems {
-		if _, ok := headerIndex[reportItem.AttrName]; !ok {
-			headerTs = append(headerTs, reportItem.AttrName)
-			headerIndex[reportItem.AttrName] = int64(len(headerTs) - 1)
-		}
-	}
-	return headerTs, headerIndex
-}
-
-func getSortedHeader(sourceRow map[string]interface{}, columnMapConfig *mapping.ColumnMapConfig) []string {
-	requiredKeys := make([]string, 2)
-	otherKeys := make([]string, 0)
-
-	for k, _ := range sourceRow {
-		switch utils.TrimAll(k) {
-		case utils.TrimAll(columnMapConfig.ProductID):
-			requiredKeys[idIndex] = k
-		case utils.TrimAll(columnMapConfig.Category):
-			requiredKeys[categoryIndex] = k
-		default:
-			otherKeys = append(otherKeys, k)
-		}
-	}
-	res := make([]string, len(requiredKeys)+len(otherKeys))
-	copy(res, requiredKeys)
-	copy(res[len(requiredKeys):], otherKeys)
-	return res
-}
-
-func buildProductsHeaderPart(sourceRow []string, columnMapConfig *mapping.ColumnMapConfig) ([]string, map[string]int64) {
-	headerTs := make([]string, 2)
-	headerIndex := make(map[string]int64, 0)
-	headerTs[categoryIndex] = tsCategoryKey
-	headerTs[idIndex] = tsProductIdKey
-
-	for i, sourceColumnName := range sourceRow {
-		switch utils.TrimAll(sourceColumnName) {
-		case utils.TrimAll(columnMapConfig.Category):
-			headerIndex[sourceColumnName] = categoryIndex
-		case utils.TrimAll(columnMapConfig.ProductID):
-			headerIndex[sourceColumnName] = idIndex
-		default:
-			f := columnMapConfig.GetDefaultValueByMapped(sourceColumnName)
-			if f != nil {
-				headerTs = append(headerTs, f.DefaultKey)
-			} else {
-				headerTs = append(headerTs, sourceColumnName)
-			}
-			headerIndex[sourceColumnName] = int64(i) //todo check why
-		}
-	}
-	return headerTs, headerIndex
 }
 
 /**
@@ -115,6 +56,7 @@ func (r *ReportsHandler) buildSuccessMapRaw(source []map[string]interface{}, rep
 
 		productAttrs := findAttributesByProduct(sourceProduct.ID, reportAttrItems)
 
+		// setup product attributes from source
 		for attrName, attrValue := range sourceProduct.Attributes {
 			if i, ok := headerIndex[attrName]; ok {
 				attr := findAttributeByName(attrName, productAttrs)
@@ -125,9 +67,15 @@ func (r *ReportsHandler) buildSuccessMapRaw(source []map[string]interface{}, rep
 				}
 			}
 		}
+		//actualize values from attributes file
 		for _, productAttrItem := range productAttrs {
 			if i, ok := headerIndex[productAttrItem.AttrName]; ok {
 				reportItem[i] = fmt.Sprintf("%v", productAttrItem.AttrValue)
+				if productAttrItem.UoM != "" {
+					if j, ok := headerIndex[buildUOMColumnName(productAttrItem.Name)]; ok {
+						reportItem[j] = productAttrItem.UoM
+					}
+				}
 				if productAttrItem.Category != "" {
 					reportItem[categoryIndex] = productAttrItem.Category
 				}
