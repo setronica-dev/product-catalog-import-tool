@@ -30,11 +30,6 @@ func XLSXToCSV(sourceFilePath string, sheet string, headerRowsToSkip int, destin
 }
 
 func clearEmptyData(data [][]string, headerRowsToSkip int) [][]string {
-	// will be removed when all sheet's headers will be configurable
-	if headerRowsToSkip == 0 {
-		return data
-	}
-
 	var res [][]string
 	columnIndexes := getValidColumnIndexes(data[headerRowsToSkip])
 
