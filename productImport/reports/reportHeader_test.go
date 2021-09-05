@@ -59,7 +59,7 @@ func Test_buildHeader(t *testing.T) {
 			},
 			{
 				name: "positive: in success report column names in mapping and product header should be compatible regardless of *, spaces, tabs," +
-					"header indexes should be oriented on source labels",
+					"header headerIndex should be oriented on source labels",
 				args: args{
 					source: map[string]interface{}{
 						"ProductID*": "1233",
@@ -90,8 +90,8 @@ func Test_buildHeader(t *testing.T) {
 					"Attribute1",
 				},
 				want1: map[string]int64{
-					"ProductID*":  0,
-					"UNSPSC":   1,
+					"ProductID*": 0,
+					"UNSPSC":     1,
 					"PName":      2,
 					"Attribute1": 3,
 				},
@@ -133,7 +133,7 @@ func Test_buildHeader(t *testing.T) {
 				},
 			},
 			{
-				name: "positive: attributes without category should be added to common report ",
+				name: "positive: attributes without category should be added to transformation report",
 				args: args{
 					source: map[string]interface{}{
 						"ProductID*": "1233",
@@ -165,11 +165,92 @@ func Test_buildHeader(t *testing.T) {
 					"Attribute2",
 				},
 				want1: map[string]int64{
-					"ProductID*":  0,
-					"UNSPSC":   1,
+					"ProductID*": 0,
+					"UNSPSC":     1,
 					"PName":      2,
 					"Attribute1": 3,
 					"Attribute2": 4,
+				},
+			},
+			{
+				name: "positive: new column with uom value of attribute should be added for product attributes, which has uom value",
+				args: args{
+					source: map[string]interface{}{
+						"ProductID":  "1233",
+						"UNSPSC":     "1321442",
+						"PName":      "Test product",
+						"Attribute1": "High availability",
+					},
+					reportItems: []Report{
+						{
+							ProductId:    "123",
+							Name:         "Test product",
+							Category:     "1321442",
+							CategoryName: "Test Category Name",
+							AttrName:     "Attribute1",
+							AttrValue:    "High availability",
+							UoM:          "kg",
+						},
+					},
+					columnMap: &mapping.ColumnMapConfig{
+						Category:  "UNSPSC",
+						ProductID: "ProductID",
+						Name:      "PName",
+					},
+				},
+				want: []string{
+					"ID",
+					"Category",
+					"Name",
+					"Attribute1",
+					"Attribute1_UOM",
+				},
+				want1: map[string]int64{
+					"ProductID":      0,
+					"UNSPSC":         1,
+					"PName":          2,
+					"Attribute1":     3,
+					"Attribute1_UOM": 4,
+				},
+			},
+			{
+				name: "positive: new column with uom attribute value should be added for new attributes",
+				args: args{
+					source: map[string]interface{}{
+						"ProductID": "1233",
+						"UNSPSC":    "1321442",
+						"PName":     "Test product",
+					},
+					reportItems: []Report{
+						{
+							ProductId:    "123",
+							Name:         "Test product",
+							Category:     "1321442",
+							CategoryName: "Test Category Name",
+							AttrName:     "Attribute1",
+							AttrValue:    "High availability",
+							UoM:          "kg",
+						},
+					},
+					columnMap: &mapping.ColumnMapConfig{
+						Category:  "UNSPSC",
+						ProductID: "ProductID",
+						Name:      "PName",
+					},
+				},
+				want: []string{
+					"ID",
+					"Category",
+					"Name",
+					"Attribute1",
+					"Attribute1_UOM",
+				},
+				want1: map[string]int64{
+					"ProductID":      0,
+					"UNSPSC":         1,
+					"PName":          2,
+					"Attribute1":     3,
+					"Attribute1_UOM": 4,
 				},
 			},*/
 	}
@@ -187,29 +268,29 @@ func Test_buildHeader(t *testing.T) {
 	}
 }
 
-func Test_buildProductsPart(t *testing.T) {
-	type args struct {
-		sourceOrderedRow []string
-		columnMapConfig  *mapping.ColumnMapConfig
+func TestHeaderBuilder_buildSuccessReportHeader(t *testing.T) {
+	type fields struct {
+		sourceRow  map[string]interface{}
+		attributes []Report
+		columnMap  *mapping.ColumnMapConfig
 	}
 	tests := []struct {
-		name  string
-		args  args
-		want  []string
-		want1 map[string]int64
+		name   string
+		fields fields
+		want   *Header
 	}{
 		{
 			name: "Positive:",
-			args: args{
-				sourceOrderedRow: []string{
-					"SKU*",
-					"UNSPSC*",
-					"ProductName",
-					"Column1",
-					"column 2",
-					" Column 3",
+			fields: fields{
+				sourceRow: map[string]interface{}{
+					"SKU*":        "1",
+					"UNSPSC*":     "2",
+					"ProductName": "3",
+					"Column1":     "4",
+					"column 2":    "5",
+					" Column 3":   "6",
 				},
-				columnMapConfig: &mapping.ColumnMapConfig{
+				columnMap: &mapping.ColumnMapConfig{
 					ProductID: "SKU",
 					Category:  "UNSPSC",
 					Name:      "Product Name",
@@ -225,27 +306,30 @@ func Test_buildProductsPart(t *testing.T) {
 					},
 				},
 			},
-			want: []string{
-				"ID", "Category", "Name", "Key1", "Key2", " Column 3",
-			},
-			want1: map[string]int64{
-				"SKU*":        0,
-				"UNSPSC*":     1,
-				"ProductName": 2,
-				"Column1":     3,
-				"column 2":    4,
-				" Column 3":   5,
+			want: &Header{
+				headerTs: []string{
+					"ID", "Category", "Name", "Key1", "Key2", " Column 3",
+				},
+				headerIndex: map[string]int64{
+					"SKU*":        0,
+					"UNSPSC*":     1,
+					"ProductName": 2,
+					"Column1":     3,
+					"column 2":    4,
+					" Column 3":   5,
+				},
 			},
 		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got, got1 := buildProductsHeaderPart(tt.args.sourceOrderedRow, tt.args.columnMapConfig)
-			if !reflect.DeepEqual(got, tt.want) {
-				t.Errorf("buildProductsHeaderPart() got = %v, want %v", got, tt.want)
+			h := &HeaderBuilder{
+				sourceRow:  tt.fields.sourceRow,
+				attributes: tt.fields.attributes,
+				columnMap:  tt.fields.columnMap,
 			}
-			if !reflect.DeepEqual(got1, tt.want1) {
-				t.Errorf("buildProductsHeaderPart() got1 = %v, want %v", got1, tt.want1)
+			if got := h.buildSuccessReportHeader(); !reflect.DeepEqual(got, tt.want) {
+				t.Errorf("buildSuccessReportHeader() = %v, want %v", got, tt.want)
 			}
 		})
 	}
