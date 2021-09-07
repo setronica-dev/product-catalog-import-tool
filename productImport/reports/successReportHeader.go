@@ -2,6 +2,7 @@ package reports
 
 import (
 	"fmt"
+	"strings"
 	"ts/productImport/mapping"
 	"ts/utils"
 )
@@ -76,6 +77,9 @@ func (h *HeaderBuilder) buildSortedHeader() []string {
 }
 
 func buildUOMColumnName(attrName string) string {
+	attrName = strings.Replace(attrName, "  ", " ", -1)
+	attrName = strings.TrimLeft(attrName, " ")
+	attrName = strings.TrimRight(attrName, " ")
 	return fmt.Sprintf("%v_UOM", attrName)
 }
 
