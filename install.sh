@@ -8,7 +8,6 @@ product:
   sent: ${DIR}/data/source/processed/products/
   in_progress: ${DIR}/data/source/inprogress/
   success_result: ${DIR}/data/result/sent/
-  fail_result: ${DIR}/data/result/report/
   mapping: ${DIR}/data/mapping/mapping.yaml
   ontology: ${DIR}/data/ontology/rules.csv
 
@@ -17,21 +16,27 @@ offer:
   sent: ${DIR}/data/source/processed/offers/
 
 offer_item:
-  source: ${DIR}/data/source/offeritems/
-  success_result: ${DIR}/data/result/sent/offeritems/
-  report: ${DIR}/data/result/report/offeritems/
-  sent: ${DIR}/data/source/processed/offeritems/
+  source: ${DIR}/data/source/offerItems/
+  success_result: ${DIR}/data/result/sent/offerItems/
+  report: ${DIR}/data/result/report/
+  sent: ${DIR}/data/source/processed/offerItems/
 
 common:
   source: ${DIR}/data/source/
   sent: ${DIR}/data/source/processed/
   sheet:
-    products: "Products"
-    offers: "Offers"
-    failures: "Attributes"
+    products:
+      name: "Products"
+      header_rows_to_skip: 2
+    offers:
+      name: "Offers"
+      header_rows_to_skip: 2
+    failures:
+      name: "Attributes"
+      header_rows_to_skip: 2
     offer_items:
       name: "Prices"
-      header_columns_count: 2
+      header_rows_to_skip: 2
 
 tradeshift_api:
   # set Tradeshift API parameters from API Access To Own Account in Tradeshift pannel
@@ -43,6 +48,9 @@ tradeshift_api:
   tenant_id:
   currency:
   file_locale:
+  recipients:
+    - id:
+      name:
 EOF
 }
 
