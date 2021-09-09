@@ -18,7 +18,7 @@ func XLSXToCSV(sourceFilePath string, sheet string, headerRowsToSkip int, destin
 	}
 	clearedData := clearEmptyData(data, headerRowsToSkip)
 	if len(clearedData) == 0 {
-		return false, nil
+		return false, fmt.Errorf("there is no valid data found on sheet %v", sheet)
 	}
 
 	err = csvFile.Write(destinationFilePath, clearedData)
@@ -33,6 +33,9 @@ func clearEmptyData(data [][]string, headerRowsToSkip int) [][]string {
 	var res [][]string
 	columnIndexes := getValidColumnIndexes(data[headerRowsToSkip])
 
+	if len(columnIndexes) == 0 {
+		return res
+	}
 	for _, row := range data[headerRowsToSkip:] {
 		if !utils.IsEmptyRow(row) {
 			cells := getValidRowCells(row, columnIndexes)

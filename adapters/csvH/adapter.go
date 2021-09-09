@@ -1,6 +1,7 @@
 package csvH
 
 import (
+	"fmt"
 	"ts/file/csvFile"
 	"ts/utils"
 )
@@ -30,7 +31,13 @@ func (h *Adapter) Read(filePath string) ([][]string, error) {
 	if err != nil {
 		return nil, err
 	}
+	if len(result) == 0 {
+		return [][]string{}, fmt.Errorf("file %v does not contain rows", filePath)
+	}
 	validResult := getValidRows(result)
+	if len(validResult) == 0 {
+		return [][]string{}, fmt.Errorf("file %v does not contain valid rows", filePath)
+	}
 	h.setHeader(validResult[0])
 	return validResult, nil
 }
