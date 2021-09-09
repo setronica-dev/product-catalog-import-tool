@@ -67,11 +67,11 @@ func (th *TradeshiftHandler) ImportFeedToTradeshift(
 	}
 	switch state {
 	case importToTradeshift.CompleteImportState:
-		log.Println("Import has been finished successfully")
+		log.Println("Product import has been finished successfully")
 	case importToTradeshift.CompleteWithErrorImportState:
-		log.Printf("Import has been finished with errors. See report here '%v'", th.filemanager.ReportPath)
+		log.Printf("Product import has been finished with errors. See report here '%v'", th.filemanager.ReportPath)
 	default:
-		log.Printf("Import has been failed. See report here '%v'", th.filemanager.ReportPath)
+		log.Printf("Product import has been failed. See report here '%v'", th.filemanager.ReportPath)
 	}
 	return nil
 }

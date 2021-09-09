@@ -216,10 +216,10 @@ func (ph *ProductImportHandler) processFeed(
 	attributesPath = ph.reports.WriteReport(sourceFeedPath, hasErrors, feed, parsedData)
 
 	if !hasErrors {
-		log.Println("Import products to Tradeshift has been started")
+		log.Println("Product import to Tradeshift has been started")
 		er := ph.importHandler.ImportFeedToTradeshift(attributesPath)
 		if er != nil {
-			log.Printf("Import has been failed, report was not built. Reason: %v", er)
+			log.Printf("Product import to Tradeshift has been failed, report was not built. Reason: %v", er)
 		}
 	}
 }
