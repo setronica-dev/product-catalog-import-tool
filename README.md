@@ -28,13 +28,13 @@ We implemented four steps where each of them can be switched on/off if it isn’
 The tool is supporting:
 
 * the integration with the following systems: Tradeshift;
-* the following formats of incoming data: CSV;
+* the following formats of incoming data: CSV, XLSX;
 * the following formats of outcoming data: CSV, EHF (in the nearest future).
 
 ## How does it work?
 
 You need to do some configuration steps one time to allow it working autonomily and make automatization if you need.
-After this you just need to place a file in CSV format. If it is XLSX then it has to be saved as CSV first. Later we will start supporting more formats.
+After this you just need to place a file in CSV or XLSX format. Examples of files can be found in the folder 'examples'.
 
 1. Place the source code of tool on an infrastructure and build it;
 2. Place the system’s credentials into the configuration file to make a connection;
@@ -77,6 +77,11 @@ The app will display your credentials. Just copy these values and paste them int
     *  token
     *  token_secret
     *  tenant_id
+
+You can also find there additional properties to define fefault currency and a file locale to parse correctly number delimiters. Both properties are mandatory:
+
+    *  currency: USD
+    *  file_locale: en_US
 
 ## Mapping file
 
