@@ -334,3 +334,29 @@ func TestHeaderBuilder_buildSuccessReportHeader(t *testing.T) {
 		})
 	}
 }
+
+func Test_buildUOMColumnName(t *testing.T) {
+	type args struct {
+		attrName string
+	}
+	tests := []struct {
+		name string
+		args args
+		want string
+	}{
+		{
+			name: "Positive: first, last and duplicated spaces should be removed from attribute-name when it is used as UoM column_name",
+			args: args{
+				attrName: "   Mobile  phones ",
+			},
+			want: "Mobile phones_UOM",
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if got := buildUOMColumnName(tt.args.attrName); got != tt.want {
+				t.Errorf("buildUOMColumnName() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
