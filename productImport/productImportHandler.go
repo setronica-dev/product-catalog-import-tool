@@ -123,7 +123,7 @@ func (ph *ProductImportHandler) runProductValidationImportFlow(columnMap map[str
 			}
 		}
 	} else if len(sources) == 0 {
-		return fmt.Errorf("SOURCE IS NOT FOUND")
+		return fmt.Errorf("PRODUCT SOURCE FILES WAS NOT FOUND")
 	}
 
 	for _, source := range sources {
@@ -166,13 +166,14 @@ func (ph *ProductImportHandler) processFeed(
 	// fixed attributes
 	attributeReportData, err := ph.attributeHandler.InitAttributeData(attributesPath)
 	if err != nil {
-		log.Printf("failed to upload attributes report %v: %v", attributesPath, err)
+		log.Printf("Failed to upload attributes report %v: %v", attributesPath, err)
 	}
 
 	// source
 	parsedData, err := ph.productHandler.InitSourceData(sourceFeedPath)
 	if err != nil {
-		log.Printf("failed to upload source data %v: %v", sourceFeedPath, err)
+		log.Printf("Failed to upload product's source data %v: %v", sourceFeedPath, err)
+		return
 	}
 
 	// validation feed
