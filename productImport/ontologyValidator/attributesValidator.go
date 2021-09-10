@@ -11,7 +11,7 @@ import (
 	"ts/utils"
 )
 
-func (v *Validator) validateReport(
+func (v *Validator) validateAttributes(
 	rulesData *models.OntologyConfig,
 	productData *product.Products,
 	attributeData []*attribute.Attribute) ([]reports.Report, bool) {

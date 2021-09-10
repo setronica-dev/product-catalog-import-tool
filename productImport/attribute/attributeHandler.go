@@ -38,6 +38,9 @@ func (ah *AttributeHandler) InitAttributeData(filePath string) ([]*Attribute, er
 	if err != nil {
 		return nil, err
 	}
+	if len(reportDataSource) == 0 {
+		return []*Attribute{}, nil
+	}
 	currentLabels := ah.getCurrentHeader(reportDataSource[0])
 	reportData = ah.parseData(reportDataSource, currentLabels)
 	return reportData, nil

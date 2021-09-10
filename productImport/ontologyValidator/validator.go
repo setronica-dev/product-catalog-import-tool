@@ -40,7 +40,7 @@ func (v *Validator) Validate(data struct {
 	parsedProducts := v.productHandler.InitParsedSourceData(data.SourceData)
 
 	if data.AttributeData != nil && len(data.AttributeData) > 0 {
-		report, isErr := v.validateReport(data.Rules, parsedProducts, data.AttributeData)
+		report, isErr := v.validateAttributes(data.Rules, parsedProducts, data.AttributeData)
 		return report, isErr
 	}
 
