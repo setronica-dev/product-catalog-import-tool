@@ -60,28 +60,56 @@ where:
 
 This [./service.yaml](service.yaml)  file contains settings to let the tool know about all needed folders and files on the file system
 
-    catalog:
-        source: ./data/source/
-        ...
+        product:
+          source: ./data/source/products/
+          ...
 
 This data will be filled in properly when you will build the tool. So there aren't any needs to change it manually if you don't have any special requests on it.
+
+If you use XLSX file then the following properties has to be filled in to define a name of each sheet from your file for each type of data. It is needed in case if you use own names for these sheets. You also can define the count of header lines that has to be skipped. The configuration that you can find below means that the header line will start from third line. The first two lines will be skipped.
+
+        common:
+          source: ./data/source/
+          sent: ./data/source/processed/
+          sheet:
+            products:
+              name: "Products"
+              header_rows_to_skip: 2
+            offers:
+              name: "Offers"
+              header_rows_to_skip: 2
+            failures:
+              name: "Attributes"
+              header_rows_to_skip: 2
+            offer_items:
+              name: "Prices"
+              header_rows_to_skip: 2
+
 
 This tool contains settings to establish an API connection with the system as well.
 
 The easiest way to get started working with the Tradeshift API is to create OAuth credentials by activating the [API Access to Own Account]( https://sandbox.tradeshift.com/#/apps/Tradeshift.AppStore/apps/Tradeshift.APIAccessToOwnAccount) app.
 The app will display your credentials. Just copy these values and paste them into the configuration file:
 
-    *  base_url
-    *  consumer_key
-    *  consumer_secret
-    *  token
-    *  token_secret
-    *  tenant_id
+        base_url
+        consumer_key
+        consumer_secret
+        token
+        token_secret
+        tenant_id
 
-You can also find there additional properties to define fefault currency and a file locale to parse correctly number delimiters. Both properties are mandatory:
+You can also find there additional properties to define default currency and a file locale to parse correctly number delimiters in your file. Both properties are mandatory:
 
-    *  currency: USD
-    *  file_locale: en_US
+        currency: USD
+        file_locale: en_US
+    
+You can also find there additional property to define a mapping between a recipient name and its tenant id on the platform. You can provide a tenant id directly in the file but it means developing some additional functionality on your export process that isn't possible for some cases or quite difficult. So you can configure it at once and apply changes when new recipients will appear to simplify it. This property is optional:
+
+        recipients:
+          - id: tenantId1
+            name: tenantName1
+          - id: tenantId2
+            name: tenantName2
 
 ## Mapping file
 
