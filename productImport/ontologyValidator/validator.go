@@ -30,20 +30,33 @@ func NewValidator(deps Deps) ValidatorInterface {
 	}
 }
 
-func (v *Validator) Validate(data struct {
-	Mapping       map[string]string
-	Rules         *models.OntologyConfig
-	SourceData    []map[string]interface{}
-	AttributeData []*attribute.Attribute
-}) ([]reports.Report, bool) {
+func (v *Validator) InitialValidation(
+	mapping map[string]string,
+	rules *models.OntologyConfig,
+	sourceData []map[string]interface{}) ([]reports.Report, bool) {
+	report, isErr := v.validateProductsAgainstRules(mapping,
+		rules,
+		sourceData,
+	)
+	return report, isErr
+}
 
-	parsedProducts := v.productHandler.InitParsedSourceData(data.SourceData)
+func (v *Validator) SecondaryValidation(
+	mapping map[string]string,
+	rules *models.OntologyConfig,
+	sourceData []map[string]interface{},
+	attributeData []*attribute.Attribute,
+) ([]reports.Report, bool) {
 
-	if data.AttributeData != nil && len(data.AttributeData) > 0 {
-		report, isErr := v.validateAttributes(data.Rules, parsedProducts, data.AttributeData)
+	parsedProducts := v.productHandler.InitParsedSourceData(sourceData)
+	if attributeData != nil && len(attributeData) > 0 {
+		report, isErr := v.validateAttributesAgainstRules(rules, parsedProducts, attributeData)
 		return report, isErr
 	}
 
-	report, isErr := v.validateSource(data)
+	report, isErr := v.validateProductsAgainstRules(mapping,
+		rules,
+		sourceData,
+	)
 	return report, isErr
 }

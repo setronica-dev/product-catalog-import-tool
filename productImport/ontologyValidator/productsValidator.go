@@ -4,28 +4,26 @@ import (
 	"fmt"
 	"log"
 	"strings"
-	"ts/productImport/attribute"
 	"ts/productImport/ontologyRead/models"
 	"ts/productImport/ontologyRead/rawOntology"
 	"ts/productImport/reports"
 	"ts/utils"
 )
 
-func (v *Validator) validateSource(data struct {
-	Mapping       map[string]string
-	Rules         *models.OntologyConfig
-	SourceData    []map[string]interface{}
-	AttributeData []*attribute.Attribute
-}) ([]reports.Report, bool) {
+func (v *Validator) validateProductsAgainstRules(
+	mapping       map[string]string,
+	rules         *models.OntologyConfig,
+	sourceData    []map[string]interface{},
+) ([]reports.Report, bool) {
 	feed := make([]reports.Report, 0)
 	var columnMapIndex map[string]string
-	if data.Mapping != nil && len(data.Mapping) > 0 {
-		columnMapIndex = utils.RevertMapKeyValue(data.Mapping)
+	if mapping != nil && len(mapping) > 0 {
+		columnMapIndex = utils.RevertMapKeyValue(mapping)
 	}
-	currentSourceMap := v.productHandler.GetCurrentHeader(data.SourceData[0])
+	currentSourceMap := v.productHandler.GetCurrentHeader(sourceData[0])
 
 	isError := false
-	for _, product := range data.SourceData {
+	for _, product := range sourceData {
 		var id string
 		var category string
 		if val, ok := product[currentSourceMap.Category]; ok {
@@ -57,7 +55,7 @@ func (v *Validator) validateSource(data struct {
 				Errors:    []string{"The product category is not specified. The product can not be validated."},
 			})
 		} else {
-			if ruleCategory, ok := data.Rules.Categories[category]; ok {
+			if ruleCategory, ok := rules.Categories[category]; ok {
 				for _, attr := range ruleCategory.Attributes {
 					val := ""
 					message := make([]string, 0)
