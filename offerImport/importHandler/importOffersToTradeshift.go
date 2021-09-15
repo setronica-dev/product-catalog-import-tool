@@ -3,6 +3,7 @@ package importHandler
 import (
 	"fmt"
 	"log"
+	"regexp"
 	"time"
 	"ts/config/configModels"
 	"ts/externalAPI/tradeshiftAPI"
@@ -57,7 +58,7 @@ func (i *ImportOfferHandler) importOffer(
 	startDate time.Time,
 	endDate time.Time,
 	countries []string) (Status, error) {
-	recipientID := i.recipientsConfig.GetRecipientIDByName(recipientName)
+	recipientID := i.getRecipientID(recipientName)
 	if recipientID == "" {
 		return Failed, fmt.Errorf("failed to find buyer %v in config", recipientName)
 	}
@@ -90,7 +91,21 @@ func (i *ImportOfferHandler) importOffer(
 	return OfferCreated, nil
 }
 
+func isId(input string) bool {
+	r, _ := regexp.Match(`[[:xdigit:]]{8}-[[:xdigit:]]{4}-[[:xdigit:]]{4}-[[:xdigit:]]{4}-[[:xdigit:]]{12}`,
+		[]byte(input))
+	return r
+}
+
+func (i *ImportOfferHandler) getRecipientID(input string) string {
+	if isId(input) {
+		return input
+	}
+	return i.recipientsConfig.GetRecipientIDByName(input)
+}
+
 func (i *ImportOfferHandler) isRecipientExists(recipientID string) (bool, error) {
+
 	res, err := i.transport.GetBuyer(recipientID)
 	if err != nil {
 		return false, fmt.Errorf("buyer \"%v\" not found: %v", recipientID, err)
