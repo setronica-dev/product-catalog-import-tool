@@ -9,7 +9,7 @@ type RawTradeshiftAPIConfig struct {
 	TenantId       string         `yaml:"tenant_id" validate:"required"`
 	Currency       string         `yaml:"currency" validate:"required"`
 	FileLocale     string         `yaml:"file_locale" validate:"required"`
-	Recipients     []RawRecipient `yaml:"recipients" validate:"required"`
+	Recipients     []RawRecipient `yaml:"recipients"`
 }
 
 type RawRecipient struct {
