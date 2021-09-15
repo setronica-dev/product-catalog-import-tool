@@ -12,14 +12,16 @@ import (
 type Deps struct {
 	dig.In
 	ProductHandler product.ProductHandlerInterface
-	Mapper mapping.MappingHandlerInterface
+	Mapper         mapping.MappingHandlerInterface
 }
 
 type ValidatorInterface interface {
-	Validate(data struct {
-		Mapping       map[string]string
-		Rules         *models.OntologyConfig
-		SourceData    []map[string]interface{}
-		AttributeData []*attribute.Attribute
-	}) ([]reports.Report, bool)
+	InitialValidation(mapping map[string]string,
+		rules *models.OntologyConfig,
+		sourceData []map[string]interface{}) ([]reports.Report, bool)
+	SecondaryValidation(
+		mapping map[string]string,
+		rules *models.OntologyConfig,
+		sourceData []map[string]interface{},
+		attributeData []*attribute.Attribute) ([]reports.Report, bool)
 }
