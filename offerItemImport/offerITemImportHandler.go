@@ -32,13 +32,14 @@ func NewOfferItemImportHandler(deps Deps) OfferItemImportHandlerInterface {
 }
 
 func (oi *OfferItemImportHandler) Run() {
+	log.Println("_________________________________")
 	files := adapters.GetFiles(oi.sourcePath)
 	if len(files) == 0 {
-		log.Printf("Offer Item Import failed: please, put file with offers into %v", oi.sourcePath)
+		log.Printf("Offer Items import failed: please, put file with offer items into %v", oi.sourcePath)
 		return
 	}
 
-	log.Println("Import offeritems to Tradeshift has been started")
+	log.Println("Import Offer Items to Tradeshift has been started")
 	for _, fileName := range files {
 		err := oi.runOfferItemImportFlow(fileName)
 		if err != nil {
@@ -83,9 +84,9 @@ func (oi *OfferItemImportHandler) importToTradeshift(fileName string) error {
 	}
 	switch state {
 	case importToTradeshift.CompleteImportState:
-		log.Println("Import has been finished successfully")
+		log.Println("Offer Items import has been finished successfully")
 	default:
-		log.Printf("Import has been finished with errors. See report here '%v'", oi.reportPath)
+		log.Printf("Offer Items import has been finished with errors. See report here '%v'", oi.reportPath)
 	}
 	return nil
 }
