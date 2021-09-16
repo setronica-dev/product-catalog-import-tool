@@ -1,6 +1,7 @@
 package product
 
 import (
+	"fmt"
 	"os"
 	"ts/adapters"
 	"ts/utils"
@@ -29,6 +30,9 @@ func (ph *ProductHandler) InitSourceData(sourceFeedPath string) ([]map[string]in
 		return nil, err
 	}
 	res := parse(sourceData)
+	if len(res) == 0 {
+		return nil, fmt.Errorf("empty source data")
+	}
 	return res, nil
 }
 
@@ -53,6 +57,9 @@ func parse(sourceData []map[string]interface{}) []map[string]interface{} {
 }
 
 func (ph *ProductHandler) InitParsedSourceData(sourceData []map[string]interface{}) *Products {
+	if len(sourceData) == 0 {
+		return NewProducts([]map[string]interface{}{}, ph.ColumnMap)
+	}
 	currentProductHeader := ph.GetCurrentHeader(sourceData[0])
 	return NewProducts(sourceData, currentProductHeader)
 }

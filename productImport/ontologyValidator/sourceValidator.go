@@ -31,7 +31,7 @@ func (v *Validator) validateSource(data struct {
 		if val, ok := product[currentSourceMap.Category]; ok {
 			category = fmt.Sprintf("%v", val)
 		} else {
-			log.Fatalf("category is not specified")
+			log.Fatalf("The product category is not specified. Product ID: %v", product[currentSourceMap.ProductID])
 		}
 
 		if val, ok := product[currentSourceMap.ProductID]; ok {
