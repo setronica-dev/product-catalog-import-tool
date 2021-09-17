@@ -21,7 +21,7 @@ offer_item:
   report: ${DIR}/data/result/report/
   sent: ${DIR}/data/source/processed/offerItems/
 
-common:
+xlsx_settings:
   source: ${DIR}/data/source/
   sent: ${DIR}/data/source/processed/
   sheet:
@@ -31,7 +31,7 @@ common:
     offers:
       name: "Offers"
       header_rows_to_skip: 2
-    failures:
+    attributes:
       name: "Attributes"
       header_rows_to_skip: 2
     offer_items:

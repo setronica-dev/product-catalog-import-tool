@@ -68,7 +68,7 @@ This data will be filled in properly when you will build the tool. So there aren
 
 If you use XLSX file then the following properties has to be filled in to define a name of each sheet from your file for each type of data. It is needed in case if you use own names for these sheets. You also can define the count of header lines that has to be skipped. The configuration that you can find below means that the header line will start from third line. The first two lines will be skipped.
 
-        common:
+        xlsx_settings:
           source: ./data/source/
           sent: ./data/source/processed/
           sheet:
@@ -78,7 +78,7 @@ If you use XLSX file then the following properties has to be filled in to define
             offers:
               name: "Offers"
               header_rows_to_skip: 2
-            failures:
+            attributes:
               name: "Attributes"
               header_rows_to_skip: 2
             offer_items:
