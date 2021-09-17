@@ -28,7 +28,9 @@ func start(
 	offerImportHandler *offerImport.OfferImportHandler,
 	offerItemImportHandler offerItemImport.OfferItemImportHandlerInterface,
 ) {
-	prepareImportHandler.Run()
+	if prepareImportHandler != nil {
+		prepareImportHandler.Run()
+	}
 	offerImportHandler.RunCSV()
 	productImportHandler.RunCSV()
 	offerItemImportHandler.Run()

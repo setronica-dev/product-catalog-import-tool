@@ -11,12 +11,13 @@ import (
 )
 
 type Handler struct {
-	sourcePath         string
-	sentPath           string
-	productConverter   *XLSXSheetToCSVConverter
-	failuresConverter  *XLSXSheetToCSVConverter
-	offerConverter     *XLSXSheetToCSVConverter
-	offerItemConverter *XLSXSheetToCSVConverter
+	sourcePath          string
+	sentPath            string
+	shouldBeSkipped     bool
+	productConverter    *XLSXSheetToCSVConverter
+	attributesConverter *XLSXSheetToCSVConverter
+	offerConverter      *XLSXSheetToCSVConverter
+	offerItemConverter  *XLSXSheetToCSVConverter
 }
 
 type Deps struct {
@@ -26,19 +27,22 @@ type Deps struct {
 
 func NewPrepareImportHandler(deps Deps) *Handler {
 	conf := deps.Config
-	commonConf := deps.Config.CommonConfig
-	sheetsConf := commonConf.Sheets
+	xlsxConfig := deps.Config.XLSXConfig
+	if deps.Config.XLSXConfig == nil {
+		return nil
+	}
+	sheetsConf := xlsxConfig.Sheets
 	return &Handler{
-		sourcePath: commonConf.SourcePath,
-		sentPath:   commonConf.SentPath,
+		sourcePath: xlsxConfig.SourcePath,
+		sentPath:   xlsxConfig.SentPath,
 		productConverter: NewXLSXSheetToCSVConverter(
 			sheetsConf.Products.Name,
 			sheetsConf.Products.HeaderRowsToSkip,
 			conf.ProductCatalog.InProgressPath,
 			""),
-		failuresConverter: NewXLSXSheetToCSVConverter(
-			sheetsConf.Failures.Name,
-			sheetsConf.Failures.HeaderRowsToSkip,
+		attributesConverter: NewXLSXSheetToCSVConverter(
+			sheetsConf.Attributes.Name,
+			sheetsConf.Attributes.HeaderRowsToSkip,
 			conf.ProductCatalog.SourcePath,
 			"_attributes"),
 		offerConverter: NewXLSXSheetToCSVConverter(
@@ -59,7 +63,6 @@ func (h *Handler) Run() {
 	if len(files) == 0 {
 		return
 	}
-
 	for _, fileName := range files {
 		filePath := filepath.Join(
 			h.sourcePath,
@@ -100,7 +103,7 @@ func (h *Handler) convertSheetsData(filePath string) error {
 	if err != nil {
 		return fmt.Errorf("failed to convert Offers: %v", err)
 	}
-	err = h.failuresConverter.Convert(filePath)
+	err = h.attributesConverter.Convert(filePath)
 	if err != nil {
 		return fmt.Errorf("failed to convert Attributes: %v", err)
 	}

@@ -39,7 +39,7 @@ type Config struct {
 	ProductCatalog   configModels.ProductCatalogConfig
 	OfferCatalog     configModels.OfferCatalogConfig
 	OfferItemCatalog configModels.OfferItemCatalogConfig
-	CommonConfig     configModels.CommonConfig
+	XLSXConfig       *configModels.XLSXConfig
 	TradeshiftAPI    configModels.TradeshiftAPIConfig
 }
 
@@ -54,13 +54,13 @@ func configFromRaw(rawService *configModels.RawServiceConfig) *Config {
 	t := rawService.TradeshiftAPIConfig
 	o := rawService.OfferCatalogConfig
 	oi := rawService.OfferItemCatalogConfig
-	c := rawService.CommonConfig
+	c := rawService.XLSXConfig
 	return &Config{
 		Service:          *rawService.ToConfig(),
 		ProductCatalog:   *p.ToConfig(),
 		OfferCatalog:     *o.ToConfig(),
 		OfferItemCatalog: *oi.ToConfig(),
-		CommonConfig:     *c.ToConfig(),
+		XLSXConfig:       c.ToConfig(),
 		TradeshiftAPI:    *t.ToConfig(),
 	}
 }
