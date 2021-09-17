@@ -147,47 +147,109 @@ func (ph *ProductImportHandler) processFeed(
 	ruleConfig *models.OntologyConfig,
 	isInitial bool,
 ) {
+	var hasErrors bool
+	var feed []reports.Report
+
+	// source
 	log.Println("_________________________________")
 	log.Printf("PROCESSING SOURCE: '%v'", sourceFeedPath)
 	var er error
+
+	if sourceFeedPath, er = adapters.MoveToPath(sourceFeedPath, ph.config.ProductCatalog.InProgressPath); er != nil {
+		log.Printf("ERROR COPYING THE '%v' FILE to the  '%v' folder", sourceFeedPath, ph.config.ProductCatalog.InProgressPath)
+	}
+	parsedSourceData, err := ph.productHandler.InitSourceData(sourceFeedPath)
+	if err != nil {
+		wrongFilePath, _ := adapters.MoveToPath(sourceFeedPath, ph.config.ProductCatalog.SentPath)
+		log.Printf("an error occured while reading products data. File was moved to %v.\nReason: %v", wrongFilePath, err)
+		return
+	}
+
+	if isInitial {
+		feed, hasErrors, err = ph.runInitialOntologyValidation(sourceFeedPath, parsedSourceData, columnMap, ruleConfig)
+		if err != nil {
+			log.Printf("ontology validation for products has been failed: %v", err)
+		}
+	} else {
+		feed, hasErrors, err = ph.runSecondaryOntologyValidation(sourceFeedPath, attributesPath, parsedSourceData, columnMap, ruleConfig)
+		if err != nil {
+			log.Printf("ontology validation for attributes and products has been failed: %v", err)
+		}
+	}
+
+	attributesReportPath := ph.reports.WriteReport(sourceFeedPath, hasErrors, feed, parsedSourceData)
+
+	if !hasErrors {
+		log.Println("Product import to Tradeshift has been started")
+		er := ph.importHandler.ImportFeedToTradeshift(attributesReportPath)
+		if er != nil {
+			log.Printf("Product import to Tradeshift has been failed, report was not built. Reason: %v", er)
+		}
+	}
+}
+
+func (ph *ProductImportHandler) runInitialOntologyValidation(
+	sourceFeedPath string,
+	parsedSourceData []map[string]interface{},
+	columnMap map[string]string,
+	ruleConfig *models.OntologyConfig) ([]reports.Report, bool, error) {
+
+	// validation feed
+	feed, hasErrors := ph.validator.InitialValidation(
+		columnMap,
+		ruleConfig,
+		parsedSourceData,
+	)
+
+	if !hasErrors {
+		log.Printf("DATA IS VALID. Please check the result here '%s'", ph.config.ProductCatalog.SentPath)
+		if _, er := adapters.MoveToPath(sourceFeedPath, ph.config.ProductCatalog.SentPath); er != nil {
+			log.Printf("ERROR COPYING THE SOURCE FILE %v to the '%v' folder", sourceFeedPath, ph.config.ProductCatalog.SentPath)
+		}
+
+	} else {
+		log.Printf("The validation has found inconsistency in your attributes based on rules. "+
+			"You can find the report here '%v'. You can apply corrections right into this report and upload it "+
+			"into the source folder %v to continue the process.",
+			ph.config.ProductCatalog.ReportPath,
+			ph.config.ProductCatalog.SourcePath)
+	}
+	return feed, hasErrors, nil
+}
+
+func (ph *ProductImportHandler) runSecondaryOntologyValidation(
+	sourceFeedPath string,
+	attributesPath string,
+	parsedSourceData []map[string]interface{},
+	columnMap map[string]string,
+	ruleConfig *models.OntologyConfig,
+) ([]reports.Report, bool, error) {
+
+	var er error
+	var attributeReportData []*attribute.Attribute
 	if attributesPath != "" {
 		log.Printf("PROCESSING REPORT: '%v'", attributesPath)
 		if attributesPath, er = adapters.MoveToPath(attributesPath, ph.config.ProductCatalog.InProgressPath); er != nil {
 			log.Printf("ERROR COPYING THE '%v' FILE to the  '%v' folder", attributesPath, ph.config.ProductCatalog.InProgressPath)
 		}
+	} else {
+		return nil, true, fmt.Errorf("empty attributes filename has been detected: %v", attributesPath)
 	}
-
-	if isInitial {
-		if sourceFeedPath, er = adapters.MoveToPath(sourceFeedPath, ph.config.ProductCatalog.InProgressPath); er != nil {
-			log.Printf("ERROR COPYING THE '%v' FILE to the  '%v' folder", sourceFeedPath, ph.config.ProductCatalog.InProgressPath)
-		}
-	}
-
 	// fixed attributes
 	attributeReportData, err := ph.attributeHandler.InitAttributeData(attributesPath)
 	if err != nil {
-		log.Printf("Failed to upload attributes report %v: %v", attributesPath, err)
-	}
-
-	// source
-	parsedData, err := ph.productHandler.InitSourceData(sourceFeedPath)
-	if err != nil {
-		log.Printf("Failed to upload product's source data %v: %v", sourceFeedPath, err)
-		return
+		wrongAttributesPath, _ := adapters.MoveToPath(attributesPath, ph.config.ProductCatalog.SentPath)
+		return nil, true, fmt.Errorf("an error occured while reading attributes report. File was moved to %v.\n"+
+			"Reason: %v", wrongAttributesPath, err)
 	}
 
 	// validation feed
-	feed, hasErrors := ph.validator.Validate(struct {
-		Mapping       map[string]string
-		Rules         *models.OntologyConfig
-		SourceData    []map[string]interface{}
-		AttributeData []*attribute.Attribute
-	}{
-		Mapping:       columnMap,
-		Rules:         ruleConfig,
-		SourceData:    parsedData,
-		AttributeData: attributeReportData,
-	})
+	feed, hasErrors := ph.validator.SecondaryValidation(
+		columnMap,
+		ruleConfig,
+		parsedSourceData,
+		attributeReportData,
+	)
 
 	if !hasErrors {
 		log.Printf("DATA IS VALID. Please check the result here '%s'", ph.config.ProductCatalog.SentPath)
@@ -195,13 +257,14 @@ func (ph *ProductImportHandler) processFeed(
 			log.Printf("ERROR COPYING THE SOURCE FILE %v to the '%v' folder", sourceFeedPath, ph.config.ProductCatalog.SentPath)
 		}
 
-		if attributesPath != "" {
-			if _, er = adapters.MoveToPath(attributesPath, ph.config.ProductCatalog.SentPath); er != nil {
-				log.Printf("ERROR COPYING THE REPORT FILE %v to the '%v' folder", attributesPath, ph.config.ProductCatalog.SentPath)
-			}
+		if _, er = adapters.MoveToPath(attributesPath, ph.config.ProductCatalog.SentPath); er != nil {
+			log.Printf("ERROR COPYING THE REPORT FILE %v to the '%v' folder", attributesPath, ph.config.ProductCatalog.SentPath)
 		}
+
 	} else {
-		log.Printf("The validation has found inconsistency in your attributes based on rules. You can find the report here '%v'. You can apply corrections right into this report and upload it into the source folder %v to continue the process.",
+		log.Printf("The validation has found inconsistency in your attributes based on rules. "+
+			"You can find the report here '%v'. You can apply corrections right into this report and upload it "+
+			"into the source folder %v to continue the process.",
 			ph.config.ProductCatalog.ReportPath,
 			ph.config.ProductCatalog.SourcePath)
 		if attributesPath != "" {
@@ -214,15 +277,7 @@ func (ph *ProductImportHandler) processFeed(
 	}
 
 	cleanUpAttributeReports(sourceFeedPath, ph.config.ProductCatalog.ReportPath)
-	attributesPath = ph.reports.WriteReport(sourceFeedPath, hasErrors, feed, parsedData)
-
-	if !hasErrors {
-		log.Println("Product import to Tradeshift has been started")
-		er := ph.importHandler.ImportFeedToTradeshift(attributesPath)
-		if er != nil {
-			log.Printf("Product import to Tradeshift has been failed, report was not built. Reason: %v", er)
-		}
-	}
+	return feed, hasErrors, nil
 }
 
 func findAttributeReport(inProgressFile string, sources []string) string {

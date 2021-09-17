@@ -50,7 +50,8 @@ func (o *OfferImportHandler) RunCSV() {
 func (o *OfferImportHandler) runOfferImportFlow(fileName string) {
 	offers, err := o.uploadOffers(fileName)
 	if err != nil {
-		log.Printf("An error occurred while uploading the offer: %v. Skip step", err)
+		_, _ = adapters.MoveToPath(filepath.Join(o.sourcePath, fileName), o.sentPath)
+		log.Printf("An error occurred while uploading the offer: %v. Skip step, invalid file was moved to %v", err, o.sentPath)
 		return
 	}
 
