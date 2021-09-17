@@ -26,7 +26,7 @@ type OfferItemCatalogConfig struct {
 	SentPath          string
 }
 
-type CommonConfig struct {
+type XLSXConfig struct {
 	SourcePath string
 	SentPath   string
 	Sheets     *SheetsConfig
@@ -35,7 +35,7 @@ type CommonConfig struct {
 type SheetsConfig struct {
 	Products   *SheetParamsConfig
 	Offers     *SheetParamsConfig
-	Failures   *SheetParamsConfig
+	Attributes *SheetParamsConfig
 	OfferItems *SheetParamsConfig
 }
 

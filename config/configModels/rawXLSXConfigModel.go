@@ -1,6 +1,6 @@
 package configModels
 
-type RawCommonCatalogConfig struct {
+type RawXLSXConfig struct {
 	SourcePath string         `yaml:"source"`
 	SentPath   string         `yaml:"sent"`
 	Sheet      RawSheetConfig `yaml:"sheet"`
@@ -10,7 +10,7 @@ type RawSheetConfig struct {
 	Products   RawSheetParamsConfig `yaml:"products"`
 	Offers     RawSheetParamsConfig `yaml:"offers"`
 	OfferItems RawSheetParamsConfig `yaml:"offer_items"`
-	Failures   RawSheetParamsConfig `yaml:"failures"`
+	Attributes RawSheetParamsConfig `yaml:"attributes"`
 }
 
 type RawSheetParamsConfig struct {
@@ -18,14 +18,17 @@ type RawSheetParamsConfig struct {
 	HeaderRowsToSkip int    `yaml:"header_rows_to_skip"`
 }
 
-func (c *RawCommonCatalogConfig) ToConfig() *CommonConfig {
-	return &CommonConfig{
+func (c *RawXLSXConfig) ToConfig() *XLSXConfig {
+	if *c == (RawXLSXConfig{}) {
+		return nil
+	}
+	return &XLSXConfig{
 		SourcePath: c.SourcePath,
 		SentPath:   c.SentPath,
 		Sheets: &SheetsConfig{
 			Products:   c.Sheet.Products.ToConfig(),
 			Offers:     c.Sheet.Offers.ToConfig(),
-			Failures:   c.Sheet.Failures.ToConfig(),
+			Attributes: c.Sheet.Attributes.ToConfig(),
 			OfferItems: c.Sheet.OfferItems.ToConfig(),
 		},
 	}
