@@ -26,29 +26,35 @@ func NewHandler() HandlerInterface {
 	return &Handler{}
 }
 
-func (c *Handler) Init(t FileType) {
+func (h *Handler) Init(t FileType) {
 	switch t {
 	case XLSX:
-		c.Adapter = &excelH.Adapter{}
+		h.Adapter = &excelH.Adapter{}
 	case CSV:
-		c.Adapter = &csvH.Adapter{}
+		h.Adapter = &csvH.Adapter{}
 	case TXT:
-		c.Adapter = &txtH.Adapter{}
+		h.Adapter = &txtH.Adapter{}
 	default:
 		log.Fatal("unsupported source file type (only csv and xlsx are supported)")
 	}
 }
 
-func (c *Handler) GetHeader() []string {
-	return c.header
+func (h *Handler) GetHeader() []string {
+	return h.header
 }
 
-func (c *Handler) Parse(file string) []map[string]interface{} {
-	res := c.Adapter.Parse(file)
-	c.header = c.Adapter.GetHeader()
+func (h *Handler) Write(filepath string, data [][]string) {
+	err := h.Adapter.Write(filepath, data)
+	if err != nil {
+		log.Fatalf("failed to write %v file: %v", filepath, err)
+	}
+}
+
+func (h *Handler) Parse(filePath string) []map[string]interface{} {
+	res, err := h.Adapter.Parse(filePath)
+	h.header = h.Adapter.GetHeader()
+	if err != nil {
+		log.Fatalf("failed to Read file %v: %v", filePath, err)
+	}
 	return res
-}
-
-func (c *Handler) Write(filepath string, data [][]string) {
-	c.Adapter.Write(filepath, data)
 }

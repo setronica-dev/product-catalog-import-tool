@@ -12,12 +12,10 @@ import (
 
 //TODO: needs cleanup
 type FileManager struct {
-	SourcePath                 string
-	SecondValidationSourcePath string
-	MappingPath                string
-	OntologyPath               string
-	ReportPath                 string
-
+	SourcePath              string
+	MappingPath             string
+	OntologyPath            string
+	ReportPath              string
 	SentPath                string
 	InProgressPath          string
 	SuccessResultFolderPath string
@@ -27,20 +25,19 @@ type FileManager struct {
 func NewFileManager(deps Deps) *FileManager {
 	conf := deps.Config.ProductCatalog
 	return &FileManager{
-		SourcePath:                 conf.SourcePath,
-		SecondValidationSourcePath: conf.SecondValidationSourcePath,
-		MappingPath:                conf.MappingPath,
-		OntologyPath:               conf.OntologyPath,
-		ReportPath:                 conf.ReportPath,
+		SourcePath:   conf.SourcePath,
+		MappingPath:  conf.MappingPath,
+		OntologyPath: conf.OntologyPath,
+		ReportPath:   conf.ReportPath,
 
 		SentPath:                conf.SentPath,
 		InProgressPath:          conf.InProgressPath,
 		SuccessResultFolderPath: conf.SuccessResultPath,
-		FailResultFolderPath:    conf.FailResultPath,
+		FailResultFolderPath:    conf.ReportPath,
 	}
 }
 
-func (m *FileManager) GetFileType(filePath string) FileType {
+func GetFileType(filePath string) FileType {
 	ext := strings.TrimLeft(filepath.Ext(filePath), ".")
 	switch ext {
 	case "csv":
@@ -54,28 +51,8 @@ func (m *FileManager) GetFileType(filePath string) FileType {
 	}
 }
 
-func (m *FileManager) BuildFailReportPath(feedPath string) string {
-	return fmt.Sprintf("%v/%v", m.FailResultFolderPath, m.buildFailFileName(feedPath))
-}
-
-func (m *FileManager) BuildSuccessReportPath(feedPath string) string {
-	return fmt.Sprintf("%v/%v", m.SuccessResultFolderPath, m.buildSuccessFileName(feedPath))
-}
-
 func (m *FileManager) BuildTradeshiftImportResultsPath(feedPath string) string {
 	return fmt.Sprintf("%v/%v", m.ReportPath, m.buildImportResultsFileName(feedPath))
-}
-
-func (m *FileManager) buildFailFileName(feedPath string) string {
-	ext := filepath.Ext(feedPath)
-	sourceFileName := GetFileName(feedPath)
-	return fmt.Sprintf("%v-failures%v", sourceFileName, ext)
-}
-
-func (m *FileManager) buildSuccessFileName(feedPath string) string {
-	ext := filepath.Ext(feedPath)
-	sourceFileName := GetFileName(feedPath)
-	return fmt.Sprintf("%v%v", sourceFileName, ext)
 }
 
 func (m *FileManager) buildImportResultsFileName(feedPath string) string {
@@ -130,7 +107,6 @@ func GetFiles(folder string) []string {
 			file = append(file, name)
 		}
 	}
-
 	return file
 }
 

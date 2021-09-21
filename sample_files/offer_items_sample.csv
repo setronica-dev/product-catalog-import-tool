@@ -1,0 +1,5 @@
+SKU*,Name,Offer*,DELETE,Price*,Currency*,Base Quantity,Min Order Quantity,Lot Size,Price Break Type,Price Break1,Price Break Quantity1,Price Break2,Price Break Quantity2,Price Break3,Price Break Quantity3,Price Break4,Price Break Quantity4,Price Break5,Price Break Quantity5,Mandatory Bundle ID 1,Mandatory Bundle Quantity 1,Optional Bundle ID 1,Optional Bundle Quantity 1
+101,,BaseOffer_US,,1300.00,USD,,,,,,,,,,,,,,,,,,
+101,,BaseOffer_EU,,1300.00,EUR,,,,,,,,,,,,,,,,,,
+201,,Telstra_DirectOffer_2021,,186,USD,,,,,,,,,,,,,,,,,,
+300,,Telstra_DirectOffer_2021,,620.69,EUR,,,,,,,,,,,,,,,,,,

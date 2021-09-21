@@ -3,89 +3,115 @@ package importHandler
 import (
 	"fmt"
 	"log"
+	"regexp"
+	"time"
+	"ts/config/configModels"
 	"ts/externalAPI/tradeshiftAPI"
 	"ts/offerImport/offerReader"
 )
 
 type ImportOfferHandler struct {
-	transport *tradeshiftAPI.TradeshiftAPI
+	transport        *tradeshiftAPI.TradeshiftAPI
+	recipientsConfig *configModels.Recipients
 }
 
 func NewImportOfferHandler(deps Deps) ImportOfferInterface {
 	return &ImportOfferHandler{
-		transport: deps.Transport,
+		transport:        deps.Transport,
+		recipientsConfig: deps.Config.TradeshiftAPI.Recipients,
 	}
 }
 
 func (i *ImportOfferHandler) ImportOffers(offers []offerReader.RawOffer) {
-	for _, item := range offers {
-		_, err := i.ImportOffer(item.Offer, item.Receiver)
+
+	log.Printf("Import offers to Tradeshift has been started")
+	for _, offer := range offers {
+		if err := validateOffer(offer); err != nil {
+			log.Printf("failed to import offer \"%v\". Reason:  %v", offer, err)
+			break
+		}
+		_, err := i.importOffer(
+			offer.Offer,
+			offer.ReceiverName,
+			offer.ValidFrom,
+			offer.ExpiresAt,
+			offer.Countries)
 		if err != nil {
-			log.Printf("failed to import offer \"%v\". Reason:  %v", item.Offer, err)
+			log.Printf("Offer Import occured the error: %v", err)
 		}
 	}
 }
 
-func (i *ImportOfferHandler) ImportOffer(offerName string, buyerID string) (Status, error) {
-	isFound, err := i.isBuyerExists(buyerID)
+func validateOffer(offer offerReader.RawOffer) error {
+	if offer.Offer == "" {
+		return fmt.Errorf("offer name should be defined")
+	}
+	if offer.ReceiverName == "" {
+		return fmt.Errorf("offer receiver should be defined")
+	}
+	return nil
+}
+
+func (i *ImportOfferHandler) importOffer(
+	offerName string,
+	recipientName string,
+	startDate time.Time,
+	endDate time.Time,
+	countries []string) (Status, error) {
+	recipientID := i.getRecipientID(recipientName)
+	if recipientID == "" {
+		return Failed, fmt.Errorf("failed to find buyer %v in config", recipientName)
+	}
+	isFound, err := i.isRecipientExists(recipientID)
 	if err != nil {
 		return Failed, err
 	}
 	if !isFound {
-		log.Print("buyer \"%v\" was not found", buyerID)
+		log.Printf("Offer '%v' can't be created for unknown buyer '%v'", offerName, recipientID)
 		return BuyerNotFound, nil
 	}
 
-	isFound, err = i.isOfferExists(offerName, buyerID)
+	offer, err := i.findOfferByNameAndBuyer(offerName, recipientID)
 	if err != nil {
 		return Failed, err
 	}
-	if isFound {
-		log.Print("offer \"%v\" was found", offerName)
+	if offer != nil {
+		err := i.updateOffer(offer, startDate, endDate, countries)
+		if err != nil {
+			return Failed, fmt.Errorf("failed to update offer %v: %v", offerName, err)
+		}
 		return OfferFound, nil
 	}
-
-	code, err := i.createOffer(offerName, buyerID)
+	_, err = i.createOffer(offerName, recipientID, startDate, endDate, countries)
 	if err != nil {
-		return Failed, fmt.Errorf("offer was not created: %v", err)
+		return Failed, err
 	}
 
-	log.Printf("new offer was created: \"%v\"", code)
+	log.Printf("New offer with name %v has been created", offerName)
 	return OfferCreated, nil
 }
 
-func (i *ImportOfferHandler) isBuyerExists(buyerID string) (bool, error) {
-	res, err := i.transport.GetBuyer(buyerID)
+func isId(input string) bool {
+	r, _ := regexp.Match(`[[:xdigit:]]{8}-[[:xdigit:]]{4}-[[:xdigit:]]{4}-[[:xdigit:]]{4}-[[:xdigit:]]{12}`,
+		[]byte(input))
+	return r
+}
+
+func (i *ImportOfferHandler) getRecipientID(input string) string {
+	if isId(input) {
+		return input
+	}
+	return i.recipientsConfig.GetRecipientIDByName(input)
+}
+
+func (i *ImportOfferHandler) isRecipientExists(recipientID string) (bool, error) {
+
+	res, err := i.transport.GetBuyer(recipientID)
 	if err != nil {
-		return false, fmt.Errorf("buyer \"%v\" not found: %v", buyerID, err)
+		return false, fmt.Errorf("buyer \"%v\" not found: %v", recipientID, err)
 	}
 	if fmt.Sprintf("%v", res["Connected"]) != "true" {
 		return false, nil
 	}
 	return true, nil
-}
-
-func (i *ImportOfferHandler) isOfferExists(offerName string, buyerID string) (bool, error) {
-	res, err := i.transport.SearchOffer(offerName)
-	if err != nil {
-		return false, fmt.Errorf("failed to find offer \"%v\": %v", offerName, err)
-	}
-	if res["total"].(float64) > 0.0 {
-		data := res["data"].([]interface{})
-		for _, item := range data {
-			itemBuyerId := item.(map[string]interface{})["buyerId"]
-			if fmt.Sprintf("%s", itemBuyerId) == buyerID {
-				return true, fmt.Errorf("offer %v for buyer %v is allready exists", offerName, buyerID)
-			}
-		}
-	}
-	return false, nil
-}
-
-func (i *ImportOfferHandler) createOffer(offerName string, buyerID string) (string, error) {
-	offerCode, err := i.transport.CreateOffer(offerName, buyerID)
-	if err != nil {
-		return "", err
-	}
-	return offerCode, nil
 }

@@ -8,52 +8,74 @@ import (
 	"regexp"
 	"ts/adapters"
 	"ts/config"
+	"ts/productImport/attribute"
 	"ts/productImport/mapping"
 	"ts/productImport/ontologyRead"
 	"ts/productImport/ontologyRead/models"
 	"ts/productImport/ontologyValidator"
+	"ts/productImport/product"
 	"ts/productImport/reports"
 	"ts/productImport/tradeshiftImportHandler"
 	"ts/utils"
 )
 
+const stageName = "Product Validation Import stage"
+
 type ProductImportHandler struct {
-	config        *config.Config
-	mapHandler    mapping.MappingHandlerInterface
-	rulesHandler  *ontologyRead.RulesHandler
-	handler       adapters.HandlerInterface
-	validator     ontologyValidator.ValidatorInterface
-	reports       *reports.ReportsHandler
-	fileManager   *adapters.FileManager
-	importHandler *tradeshiftImportHandler.TradeshiftHandler
+	config           *config.Config
+	mapHandler       mapping.MappingHandlerInterface
+	rulesHandler     *ontologyRead.RulesHandler
+	productHandler   product.ProductHandlerInterface
+	attributeHandler attribute.AttributeHandlerInterface
+	handler          adapters.HandlerInterface
+	validator        ontologyValidator.ValidatorInterface
+	reports          *reports.ReportsHandler
+	fileManager      *adapters.FileManager
+	importHandler    *tradeshiftImportHandler.TradeshiftHandler
+	columnMap        *ColumnMap
+}
+
+type ColumnMap struct {
+	Category  string
+	ProductID string
+	Name      string
 }
 
 type Deps struct {
 	dig.In
-	Config        *config.Config
-	MapHandler    mapping.MappingHandlerInterface
-	RulesHandler  *ontologyRead.RulesHandler
-	Handler       adapters.HandlerInterface
-	Validator     ontologyValidator.ValidatorInterface
-	Reports       *reports.ReportsHandler
-	FileManager   *adapters.FileManager
-	ImportHandler *tradeshiftImportHandler.TradeshiftHandler
+	Config           *config.Config
+	MapHandler       mapping.MappingHandlerInterface
+	RulesHandler     *ontologyRead.RulesHandler
+	ProductHandler   product.ProductHandlerInterface
+	AttributeHandler attribute.AttributeHandlerInterface
+	Handler          adapters.HandlerInterface
+	Validator        ontologyValidator.ValidatorInterface
+	Reports          *reports.ReportsHandler
+	FileManager      *adapters.FileManager
+	ImportHandler    *tradeshiftImportHandler.TradeshiftHandler
 }
 
 func NewProductImportHandler(deps Deps) *ProductImportHandler {
+	m := deps.MapHandler.GetColumnMapConfig()
 	return &ProductImportHandler{
-		config:        deps.Config,
-		mapHandler:    deps.MapHandler,
-		rulesHandler:  deps.RulesHandler,
-		handler:       deps.Handler,
-		validator:     deps.Validator,
-		reports:       deps.Reports,
-		fileManager:   deps.FileManager,
-		importHandler: deps.ImportHandler,
+		config:           deps.Config,
+		mapHandler:       deps.MapHandler,
+		rulesHandler:     deps.RulesHandler,
+		attributeHandler: deps.AttributeHandler,
+		productHandler:   deps.ProductHandler,
+		handler:          deps.Handler,
+		validator:        deps.Validator,
+		reports:          deps.Reports,
+		fileManager:      deps.FileManager,
+		importHandler:    deps.ImportHandler,
+		columnMap: &ColumnMap{
+			ProductID: m.ProductID,
+			Category:  m.Category,
+		},
 	}
 }
 
-func (ph *ProductImportHandler) Run() {
+func (ph *ProductImportHandler) RunCSV() {
 	//ontology
 	var rulesConfig *models.OntologyConfig
 
@@ -63,16 +85,16 @@ func (ph *ProductImportHandler) Run() {
 	}
 
 	// mappings
-	columnMap := ph.mapHandler.Init(ph.config.ProductCatalog.MappingPath)
+	columnMap := ph.mapHandler.Get()
 
 	// feed
-	err = ph.processProducts(columnMap, rulesConfig)
+	err = ph.runProductValidationImportFlow(columnMap, rulesConfig)
 	if err != nil {
-		log.Println(err)
+		log.Printf("Unexpected error: %v", err)
 	}
 }
 
-func (ph *ProductImportHandler) processProducts(columnMap map[string]string, rulesConfig *models.OntologyConfig) error {
+func (ph *ProductImportHandler) runProductValidationImportFlow(columnMap map[string]string, rulesConfig *models.OntologyConfig) error {
 	// if something in progress
 
 	var processedSource []string
@@ -81,7 +103,7 @@ func (ph *ProductImportHandler) processProducts(columnMap map[string]string, rul
 	// identify fitting report
 	if len(inProgress) > 0 {
 		for _, processingFile := range inProgress {
-			reportFile := findReport(processingFile, utils.SliceDiff(sources, processedSource))
+			reportFile := findAttributeReport(processingFile, utils.SliceDiff(sources, processedSource))
 			if reportFile != "" {
 				processedSource = append(processedSource, reportFile)
 				ph.processFeed(
@@ -92,16 +114,16 @@ func (ph *ProductImportHandler) processProducts(columnMap map[string]string, rul
 					false,
 				)
 			} else {
-				log.Printf("You have the failed feed in progress '%v'. "+
-					"Please check the failure report in '%v', "+
-					"fill it with the data and appload to the '%v' folder.",
+				log.Printf("You have a feed in progress ('%v') that is waiting for attributes corrections. " +
+					"Please check the report in '%v' or move this feed to the '%v' folder " +
+					"to get a report once again.",
 					ph.config.ProductCatalog.InProgressPath+"/"+processingFile,
-					ph.config.ProductCatalog.FailResultPath,
+					ph.config.ProductCatalog.ReportPath,
 					ph.config.ProductCatalog.SourcePath)
 			}
 		}
 	} else if len(sources) == 0 {
-		return fmt.Errorf("SOURCE IS NOT FOUND")
+		return fmt.Errorf("Products source folder is empty. Nothing to import.")
 	}
 
 	for _, source := range sources {
@@ -120,86 +142,133 @@ func (ph *ProductImportHandler) processProducts(columnMap map[string]string, rul
 
 func (ph *ProductImportHandler) processFeed(
 	sourceFeedPath string,
-	validationReportPath string,
+	attributesPath string,
 	columnMap map[string]string,
 	ruleConfig *models.OntologyConfig,
 	isInitial bool,
 ) {
-	log.Println("_________________________________")
-	log.Printf("PROCESSING SOURCE: %v", sourceFeedPath)
-	var er error
-	if validationReportPath != "" {
-		log.Printf("EDITED REPORT: %v", validationReportPath)
-		if validationReportPath, er = adapters.MoveToPath(validationReportPath, ph.config.ProductCatalog.InProgressPath); er != nil {
-			log.Printf("ERROR COPYING THE '%v' FILE to the  '%v' folder", validationReportPath, ph.config.ProductCatalog.InProgressPath)
-		}
-	}
-	if isInitial {
-		if sourceFeedPath, er = adapters.MoveToPath(sourceFeedPath, ph.config.ProductCatalog.InProgressPath); er != nil {
-			log.Printf("ERROR COPYING THE '%v' FILE to the  '%v' folder", sourceFeedPath, ph.config.ProductCatalog.InProgressPath)
-		}
-	}
-
-	labels := ph.reports.Header
-	reportData := make([]*reports.Report, 0)
-	if validationReportPath != "" {
-		if _, err := os.Stat(validationReportPath); !os.IsNotExist(err) {
-			ph.handler.Init(ph.fileManager.GetFileType(validationReportPath))
-			reportDataSource := ph.handler.Parse(validationReportPath)
-			for _, line := range reportDataSource {
-				r := &reports.Report{
-					ProductId:    fmt.Sprintf("%v", line[labels.ProductId]),
-					Name:         fmt.Sprintf("%v", line[labels.Name]),
-					Category:     fmt.Sprintf("%v", line[labels.Category]),
-					CategoryName: fmt.Sprintf("%v", line[labels.CategoryName]),
-					AttrName:     fmt.Sprintf("%v", line[labels.AttrName]),
-					AttrValue:    fmt.Sprintf("%v", line[labels.AttrValue]),
-					UoM:          fmt.Sprintf("%v", line[labels.UoM]),
-					Errors:       nil,
-					Description:  fmt.Sprintf("%v", line[labels.Description]),
-					DataType:     fmt.Sprintf("%v", line[labels.DataType]),
-					IsMandatory:  fmt.Sprintf("%v", line[labels.IsMandatory]),
-					CodedVal:     fmt.Sprintf("%v", line[labels.CodedVal]),
-				}
-				reportData = append(reportData, r)
-			}
-		}
-	}
+	var hasErrors bool
+	var feed []reports.Report
 
 	// source
-	ph.handler.Init(ph.fileManager.GetFileType(sourceFeedPath))
-	parsedData := ph.handler.Parse(sourceFeedPath)
+	log.Println("_________________________________")
+	log.Printf("PROCESSING SOURCE: '%v'", sourceFeedPath)
+	var er error
 
-	// validation feed
-	feed, hasErrors := ph.validator.Validate(struct {
-		Mapping map[string]string
-		Rules   *models.OntologyConfig
-		Data    []map[string]interface{}
-		Report  []*reports.Report
-	}{
-		Mapping: columnMap,
-		Rules:   ruleConfig,
-		Data:    parsedData,
-		Report:  reportData,
-	})
+	if sourceFeedPath, er = adapters.MoveToPath(sourceFeedPath, ph.config.ProductCatalog.InProgressPath); er != nil {
+		log.Printf("ERROR COPYING THE '%v' FILE to the  '%v' folder", sourceFeedPath, ph.config.ProductCatalog.InProgressPath)
+	}
+	parsedSourceData, err := ph.productHandler.InitSourceData(sourceFeedPath)
+	if err != nil {
+		wrongFilePath, _ := adapters.MoveToPath(sourceFeedPath, ph.config.ProductCatalog.SentPath)
+		log.Printf("an error occured while reading products data. File was moved to %v.\nReason: %v", wrongFilePath, err)
+		return
+	}
+
+	if isInitial {
+		feed, hasErrors, err = ph.runInitialOntologyValidation(sourceFeedPath, parsedSourceData, columnMap, ruleConfig)
+		if err != nil {
+			log.Printf("ontology validation for products has been failed: %v", err)
+		}
+	} else {
+		feed, hasErrors, err = ph.runSecondaryOntologyValidation(sourceFeedPath, attributesPath, parsedSourceData, columnMap, ruleConfig)
+		if err != nil {
+			log.Printf("ontology validation for attributes and products has been failed: %v", err)
+		}
+	}
+
+	attributesReportPath := ph.reports.WriteReport(sourceFeedPath, hasErrors, feed, parsedSourceData)
 
 	if !hasErrors {
-		log.Printf("SUCCESS: FILE IS VALID. Please check the '%s' folder", ph.config.ProductCatalog.SentPath)
+		log.Println("Product import to Tradeshift has been started")
+		er := ph.importHandler.ImportFeedToTradeshift(attributesReportPath)
+		if er != nil {
+			log.Printf("Product import to Tradeshift has been failed, report was not built. Reason: %v", er)
+		}
+	}
+}
+
+func (ph *ProductImportHandler) runInitialOntologyValidation(
+	sourceFeedPath string,
+	parsedSourceData []map[string]interface{},
+	columnMap map[string]string,
+	ruleConfig *models.OntologyConfig) ([]reports.Report, bool, error) {
+
+	// validation feed
+	feed, hasErrors := ph.validator.InitialValidation(
+		columnMap,
+		ruleConfig,
+		parsedSourceData,
+	)
+
+	if !hasErrors {
+		log.Printf("DATA IS VALID. Please check the result here '%s'", ph.config.ProductCatalog.SentPath)
+		if _, er := adapters.MoveToPath(sourceFeedPath, ph.config.ProductCatalog.SentPath); er != nil {
+			log.Printf("ERROR COPYING THE SOURCE FILE %v to the '%v' folder", sourceFeedPath, ph.config.ProductCatalog.SentPath)
+		}
+
+	} else {
+		log.Printf("The validation has found inconsistency in your attributes based on rules. "+
+			"You can find the report here '%v'. You can apply corrections right into this report and upload it "+
+			"into the source folder %v to continue the process.",
+			ph.config.ProductCatalog.ReportPath,
+			ph.config.ProductCatalog.SourcePath)
+	}
+	return feed, hasErrors, nil
+}
+
+func (ph *ProductImportHandler) runSecondaryOntologyValidation(
+	sourceFeedPath string,
+	attributesPath string,
+	parsedSourceData []map[string]interface{},
+	columnMap map[string]string,
+	ruleConfig *models.OntologyConfig,
+) ([]reports.Report, bool, error) {
+
+	var er error
+	var attributeReportData []*attribute.Attribute
+	if attributesPath != "" {
+		log.Printf("PROCESSING REPORT: '%v'", attributesPath)
+		if attributesPath, er = adapters.MoveToPath(attributesPath, ph.config.ProductCatalog.InProgressPath); er != nil {
+			log.Printf("ERROR COPYING THE '%v' FILE to the  '%v' folder", attributesPath, ph.config.ProductCatalog.InProgressPath)
+		}
+	} else {
+		return nil, true, fmt.Errorf("empty attributes filename has been detected: %v", attributesPath)
+	}
+	// fixed attributes
+	attributeReportData, err := ph.attributeHandler.InitAttributeData(attributesPath)
+	if err != nil {
+		wrongAttributesPath, _ := adapters.MoveToPath(attributesPath, ph.config.ProductCatalog.SentPath)
+		return nil, true, fmt.Errorf("an error occured while reading attributes report. File was moved to %v.\n"+
+			"Reason: %v", wrongAttributesPath, err)
+	}
+
+	// validation feed
+	feed, hasErrors := ph.validator.SecondaryValidation(
+		columnMap,
+		ruleConfig,
+		parsedSourceData,
+		attributeReportData,
+	)
+
+	if !hasErrors {
+		log.Printf("DATA IS VALID. Please check the result here '%s'", ph.config.ProductCatalog.SentPath)
 		if _, er = adapters.MoveToPath(sourceFeedPath, ph.config.ProductCatalog.SentPath); er != nil {
 			log.Printf("ERROR COPYING THE SOURCE FILE %v to the '%v' folder", sourceFeedPath, ph.config.ProductCatalog.SentPath)
 		}
 
-		if validationReportPath != "" {
-			if _, er = adapters.MoveToPath(validationReportPath, ph.config.ProductCatalog.SentPath); er != nil {
-				log.Printf("ERROR COPYING THE REPORT FILE %v to the '%v' folder", validationReportPath, ph.config.ProductCatalog.SentPath)
-			}
+		if _, er = adapters.MoveToPath(attributesPath, ph.config.ProductCatalog.SentPath); er != nil {
+			log.Printf("ERROR COPYING THE REPORT FILE %v to the '%v' folder", attributesPath, ph.config.ProductCatalog.SentPath)
 		}
+
 	} else {
-		log.Printf("FAILURE: check the failure report in '%v', fill it with the data and upload to the '%v' folder.",
+		log.Printf("The validation has found inconsistency in your attributes based on rules. "+
+			"You can find the report here '%v'. You can apply corrections right into this report and upload it "+
+			"into the source folder %v to continue the process.",
 			ph.config.ProductCatalog.ReportPath,
 			ph.config.ProductCatalog.SourcePath)
-		if validationReportPath != "" {
-			e := os.Remove(validationReportPath)
+		if attributesPath != "" {
+			e := os.Remove(attributesPath)
 
 			if e != nil {
 				log.Println(e)
@@ -207,23 +276,16 @@ func (ph *ProductImportHandler) processFeed(
 		}
 	}
 
-	cleanUpFailures(sourceFeedPath, ph.config.ProductCatalog.FailResultPath)
-	validationReportPath = ph.reports.WriteReport(sourceFeedPath, hasErrors, feed, parsedData, columnMap)
-	if !hasErrors {
-		log.Println("IMPORT FEED TO TRADESHIFT WAS STARTED")
-		er := ph.importHandler.ImportFeedToTradeshift(sourceFeedPath, validationReportPath)
-		if er != nil {
-			log.Printf("FAILED TO IMPORT VALID FEED TO TRADESHIFT. Reason: %v", er)
-		}
-	}
+	cleanUpAttributeReports(sourceFeedPath, ph.config.ProductCatalog.ReportPath)
+	return feed, hasErrors, nil
 }
 
-func findReport(inProgressFile string, sources []string) string {
+func findAttributeReport(inProgressFile string, sources []string) string {
 	report := ""
 	pattern := adapters.GetFileName(inProgressFile)
 
 	for _, source := range sources {
-		regexp, _ := regexp.Compile(`(-failures)`)
+		regexp, _ := regexp.Compile(`(_attributes)`)
 		match := regexp.FindStringIndex(source)
 		if len(match) == 2 {
 			name := string(source[0:match[0]])
@@ -235,10 +297,10 @@ func findReport(inProgressFile string, sources []string) string {
 	return report
 }
 
-func cleanUpFailures(sourceFile string, folder string) {
-	reports := adapters.GetFiles(folder)
-	for _, source := range reports {
-		del := findReport(sourceFile, []string{source})
+func cleanUpAttributeReports(sourceFile string, folder string) {
+	reportsList := adapters.GetFiles(folder)
+	for _, source := range reportsList {
+		del := findAttributeReport(sourceFile, []string{source})
 		if del != "" {
 			e := os.Remove(folder + "/" + del)
 			if e != nil {

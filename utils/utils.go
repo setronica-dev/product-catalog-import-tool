@@ -47,21 +47,6 @@ func GetFloat(unk interface{}) (float64, error) {
 	}
 }
 
-func InArray(val string, array []string) (exists bool, index int) {
-	exists = false
-	index = -1
-
-	for i, v := range array {
-		if val == v {
-			index = i
-			exists = true
-			return exists, index
-		}
-	}
-
-	return exists, index
-}
-
 func ArrayToString(A []string, delimiter string) string {
 
 	var buffer bytes.Buffer
@@ -132,4 +117,27 @@ func GetMapOrDefault(key string, source map[string]string) string {
 		return val
 	}
 	return key
+}
+
+func RowsToMapRows(data [][]string, header []string) ([]map[string]interface{}, error) {
+	parsedData := make([]map[string]interface{}, 0, 0)
+
+	if len(header) == 0 {
+		return nil, fmt.Errorf("header is undefind")
+	}
+	for rowCounter, row := range data {
+		if rowCounter > 0 {
+			var singleMap = make(map[string]interface{})
+			for colCounter, col := range row {
+				i := header[colCounter]
+				if i != "" {
+					singleMap[i] = col
+				}
+			}
+			if len(singleMap) > 0 {
+				parsedData = append(parsedData, singleMap)
+			}
+		}
+	}
+	return parsedData, nil
 }

@@ -10,10 +10,16 @@ import (
 	"ts/offerImport"
 	"ts/offerImport/importHandler"
 	"ts/offerImport/offerReader"
+	"ts/offerItemImport"
+	"ts/offerItemImport/offerItemMapping"
+	"ts/outwardImport/importToTradeshift"
+	"ts/prepareImport"
 	"ts/productImport"
+	"ts/productImport/attribute"
 	"ts/productImport/mapping"
 	"ts/productImport/ontologyRead"
 	"ts/productImport/ontologyValidator"
+	"ts/productImport/product"
 	"ts/productImport/reports"
 	"ts/productImport/tradeshiftImportHandler"
 )
@@ -33,17 +39,23 @@ var diConfig = []entry{
 	{constructor: mapping.NewMappingHandler},
 	{constructor: ontologyRead.NewRulesHandler},
 	{constructor: offerReader.NewOfferReader},
+	{constructor: attribute.NewAttributeHandler},
+	{constructor: product.NewProductHandler},
 
 	{constructor: ontologyValidator.NewValidator},
 	{constructor: reports.NewReportsHandler},
+	{constructor: offerItemMapping.NewOfferItemMappingHandler},
 
 	{constructor: rest.NewRestClient},
 	{constructor: tradeshiftAPI.NewTradeshiftAPI},
 	{constructor: tradeshiftImportHandler.NewTradeshiftHandler},
 	{constructor: importHandler.NewImportOfferHandler},
+	{constructor: importToTradeshift.NewImportToTradeshift},
 
+	{constructor: prepareImport.NewPrepareImportHandler},
 	{constructor: productImport.NewProductImportHandler},
 	{constructor: offerImport.NewOfferImportHandler},
+	{constructor: offerItemImport.NewOfferItemImportHandler},
 }
 
 func BuildContainer() *dig.Container {

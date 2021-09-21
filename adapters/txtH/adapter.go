@@ -1,9 +1,8 @@
 package txtH
 
 import (
-	"log"
-	"os"
-	"strings"
+	"fmt"
+	"ts/file/txtFile"
 )
 
 const (
@@ -24,31 +23,20 @@ func (h *Adapter) GetHeader() []string {
 	}
 }
 
-func (h *Adapter) Read(filePath string) []map[string]interface{} {
-	log.Fatalf("read method is not implemented yet")
-	return nil
+func (h *Adapter) setHeader(header string) {
+	h.header = header
 }
 
-func (h *Adapter) Parse(blobPath string) []map[string]interface{} {
-	log.Fatalf("parse method is not implemented yet")
-	return nil
+func (h *Adapter) Read(filePath string) ([][]string, error) {
+	_, err := txtFile.Read(filePath)
+	return nil, err
 }
 
-func (h *Adapter) Write(filepath string, data [][]string) {
-	f, err := os.Create(filepath)
-	if err != nil {
-		log.Fatalf("failed create result file: %v", err)
-	}
-	defer f.Close()
-	for _, items := range data {
-		_, err := f.WriteString(buildRaw(items))
-		if err != nil {
-			log.Printf("failed to write to file: %v", err)
-		}
-	}
+func (h *Adapter) Parse(filePath string) ([]map[string]interface{}, error) {
+	return nil, fmt.Errorf("parse method is not implemented yet for txt adapter")
 }
 
-func buildRaw(input []string) string {
-	r := strings.Join(input, "")
-	return r
+func (h *Adapter) Write(filepath string, data [][]string) error {
+	err := txtFile.Write(filepath, data)
+	return err
 }

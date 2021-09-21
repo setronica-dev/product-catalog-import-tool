@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"net/url"
 	"strconv"
+	"strings"
+	"time"
 	"ts/externalAPI/rest"
 )
 
@@ -36,21 +38,30 @@ func (t *TradeshiftAPI) UploadFile(filePath string) (map[string]interface{}, err
 	return r, err
 }
 
-func (t *TradeshiftAPI) RunImportAction(fileID string) (string, error) {
+func (t *TradeshiftAPI) RunImportAction(fileID string, currency string, fileLocale string, isOfferItemsImport bool) (string, error) {
 	method := fmt.Sprintf("/product-engine/supplier/supplier/v1/product-import/files/%v/actions/import-products", url.QueryEscape(fileID))
+
+	urlParams := []rest.UrlParam{
+		{
+			Key:   "currency",
+			Value: currency,
+		},
+		{
+			Key:   "fileLocale",
+			Value: fileLocale,
+		},
+	}
+
+	if isOfferItemsImport {
+		urlParams = append(urlParams, rest.UrlParam{
+			Key:   "shareOffers",
+			Value: "true",
+		})
+	}
 	resp, err := t.Client.Post(
 		method,
 		nil,
-		[]rest.UrlParam{
-			{
-				Key:   "currency",
-				Value: "USD",
-			},
-			{
-				Key:   "fileLocale",
-				Value: "en_US",
-			},
-		})
+		urlParams)
 	if err != nil {
 		return "", err
 	}
@@ -124,5 +135,36 @@ func (t *TradeshiftAPI) CreateOffer(name string, buyerID string) (string, error)
 	if err != nil {
 		return "", err
 	}
-	return r, err
+	return strings.Replace(r, "\"", "", -1), err
+}
+
+func (t *TradeshiftAPI) UpdateOffer(
+	offerID string,
+	name string,
+	startDate *time.Time,
+	endDate *time.Time,
+	countries []string) error {
+	method := fmt.Sprintf("/product-engine/supplier/supplier/v1/offers/%v", offerID)
+
+	data := map[string]interface{}{
+		"name": name,
+	}
+
+	if startDate != nil {
+		data["startDate"] = startDate.UnixNano() / int64(time.Millisecond)
+
+	}
+	if endDate != nil {
+		data["endDate"] = endDate.UnixNano() / int64(time.Millisecond)
+	}
+
+	if countries != nil {
+		data["countries"] = countries
+	}
+	_, err := t.Client.Put(
+		method,
+		rest.BuildBody(data),
+		nil)
+
+	return err
 }
