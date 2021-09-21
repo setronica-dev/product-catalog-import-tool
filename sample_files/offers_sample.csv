@@ -1,0 +1,4 @@
+Offer*,DELETE,Receiver*,Valid from*,Expires at,Countries*
+BaseOffer_US,,Buyer,2021-01-01,2021-12-31,US
+BaseOffer_EU,,Buyer,2021-01-01,2021-12-31,"DE,FR,IT,AT"
+Telstra_DirectOffer_2021,,Buyer,2021-08-11,2022-01-01,US

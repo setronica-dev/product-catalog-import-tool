@@ -1,0 +1,9 @@
+SKU*,Attribute ,Description,Attribute Name*,Attribute Value,UOM,Attribute UOM
+101,Length,,Length,15.0,KGM,MMT
+101,Height,,Height,4,CMT,MMT
+101,Resistance ,,Resistance ,50,CMT,B49
+200,Brightness,,Brightness,250,KGM,
+200,Screen size,,SCREEN SIZE,27’’,,
+201,Screen size,,SCREEN SIZE,27’’,,
+202,Screen size,,SCREEN SIZE,23.8’’,,
+300,Rack Height,,Rack Height,22U,,
