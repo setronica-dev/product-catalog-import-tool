@@ -114,16 +114,16 @@ func (ph *ProductImportHandler) runProductValidationImportFlow(columnMap map[str
 					false,
 				)
 			} else {
-				log.Printf("You have the failed feed in progress '%v'. "+
-					"Please check the failure report in '%v', "+
-					"fill it with the data and appload to the '%v' folder.",
+				log.Printf("You have a feed in progress ('%v') that is waiting for attributes corrections. " +
+					"Please check the report in '%v' or move this feed to the '%v' folder " +
+					"to get a report once again.",
 					ph.config.ProductCatalog.InProgressPath+"/"+processingFile,
 					ph.config.ProductCatalog.ReportPath,
 					ph.config.ProductCatalog.SourcePath)
 			}
 		}
 	} else if len(sources) == 0 {
-		return fmt.Errorf("PRODUCT SOURCE FILES WAS NOT FOUND")
+		return fmt.Errorf("Products source folder is empty. Nothing to import.")
 	}
 
 	for _, source := range sources {
