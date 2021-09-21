@@ -16,6 +16,11 @@ func XLSXToCSV(sourceFilePath string, sheet string, headerRowsToSkip int, destin
 	if len(data) == 0 {
 		return false, nil
 	}
+	header := data[headerRowsToSkip]
+	if utils.IsEmptyRow(header) {
+		return false, fmt.Errorf("header is empty, sheet %v can not be processed", sheet)
+	}
+
 	clearedData := clearEmptyData(data, headerRowsToSkip)
 	if len(clearedData) == 0 {
 		return false, fmt.Errorf("there is no valid data found on sheet %v", sheet)
@@ -31,7 +36,8 @@ func XLSXToCSV(sourceFilePath string, sheet string, headerRowsToSkip int, destin
 
 func clearEmptyData(data [][]string, headerRowsToSkip int) [][]string {
 	var res [][]string
-	columnIndexes := getValidColumnIndexes(data[headerRowsToSkip])
+	header := data[headerRowsToSkip]
+	columnIndexes := getValidColumnIndexes(header)
 
 	if len(columnIndexes) == 0 {
 		return res
