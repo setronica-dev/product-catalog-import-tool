@@ -1,19 +1,38 @@
-port: 8085
-debug: false
-
 product:
   source: ./data/source/products/
-  report: ./data/result/report/
   sent: ./data/source/processed/products/
   in_progress: ./data/source/inprogress/
+  report: ./data/result/report/
   success_result: ./data/result/sent/
-  fail_result: ./data/result/report/
   mapping: ./data/mapping/mapping.yaml
   ontology: ./data/ontology/rules.csv
 
 offer:
   source: ./data/source/offers/
   sent: ./data/source/processed/offers/
+
+offer_item:
+  source: ./data/source/offerItems/
+  success_result: ./data/result/sent/offerItems/
+  report: ./data/result/report/
+  sent: ./data/source/processed/offerItems/
+
+xlsx_settings:
+  source: ./data/source/
+  sent: ./data/source/processed/
+  sheet:
+    products:
+      name: "Products"
+      header_rows_to_skip: 2
+    offers:
+      name: "Offers"
+      header_rows_to_skip: 2
+    attributes:
+      name: "Attributes"
+      header_rows_to_skip: 2
+    offer_items:
+      name: "Prices"
+      header_rows_to_skip: 2
 
 tradeshift_api:
   # set Tradeshift API parameters from API Access To Own Account in Tradeshift pannel
@@ -23,3 +42,8 @@ tradeshift_api:
   token:
   token_secret:
   tenant_id:
+  currency:
+  file_locale:
+  recipients:
+    - id:
+      name:

@@ -1,18 +1,19 @@
 package excelH
 
 import (
-	"container/list"
 	"fmt"
-	"github.com/tealeg/xlsx"
-	"log"
+	"strings"
+	"ts/file/xlsxFile"
+	"ts/utils"
 )
 
 const (
-	alias = "excel"
+	alias         = "excel"
+	pathDelimiter = "::"
 )
 
 type Adapter struct {
-	header list.List
+	header []string
 }
 
 func (h *Adapter) Alias() string {
@@ -20,49 +21,46 @@ func (h *Adapter) Alias() string {
 }
 
 func (h *Adapter) GetHeader() []string {
-	log.Printf("getHeader method is not implemented yet")
-	return nil
+	return h.header
 }
 
-func (h *Adapter) Read(filePath string) []map[string]interface{} {
-	xlFile, err := xlsx.OpenFile(filePath)
+func (h *Adapter) setHeader(header []string) {
+	h.header = header
+}
+
+func (h *Adapter) Read(path string) ([][]string, error) {
+	filePath, sheet, err := parsePath(path)
 	if err != nil {
-		fmt.Println("Error reading the file")
+		return nil, err
 	}
-
-	parsedData := make([]map[string]interface{}, 0, 0)
-	headerName := list.New()
-	// sheet
-	for _, sheet := range xlFile.Sheets {
-		// rows
-		for rowCounter, row := range sheet.Rows {
-			// column
-			headerIterator := headerName.Front()
-			var singleMap = make(map[string]interface{})
-
-			for _, cell := range row.Cells {
-				if rowCounter == 0 {
-					text := cell.String()
-					headerName.PushBack(text)
-				} else {
-					text := cell.String()
-					singleMap[headerIterator.Value.(string)] = text
-					headerIterator = headerIterator.Next()
-				}
-			}
-			if rowCounter != 0 && len(singleMap) > 0 {
-				parsedData = append(parsedData, singleMap)
-			}
-		}
+	res, err := xlsxFile.Read(filePath, sheet)
+	if err != nil {
+		return nil, fmt.Errorf("failed to Read  %v: %v", path, err)
 	}
-	return parsedData
+	h.setHeader(res[0])
+	return res, nil
 }
 
-func (h *Adapter) Parse(blobPath string) []map[string]interface{} {
-	parsedData := h.Read(blobPath)
-	return parsedData
+func parsePath(path string) (string, string, error) {
+	res := strings.SplitN(path, pathDelimiter, 2)
+	if len(res[0]) == 0 {
+		return "", "", fmt.Errorf("file path is not defined")
+	}
+	if len(res) == 1 || res[1] == "" {
+		return "", "", fmt.Errorf("sheet name is not defined")
+	}
+	return res[0], res[1], nil
 }
 
-func (h *Adapter) Write(filepath string, data [][]string) {
-	log.Fatalf("write method is not implemented yet")
+func (h *Adapter) Parse(path string) ([]map[string]interface{}, error) {
+	data, err := h.Read(path)
+	if err != nil {
+		return nil, err
+	}
+	res, err := utils.RowsToMapRows(data, h.header)
+	return res, err
+}
+
+func (h *Adapter) Write(filepath string, data [][]string) error {
+	return fmt.Errorf("write method is not implemented yet")
 }

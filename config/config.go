@@ -4,6 +4,7 @@ import (
 	"gopkg.in/yaml.v3"
 	"io/ioutil"
 	"log"
+	"ts/config/configModels"
 )
 
 const (
@@ -20,9 +21,13 @@ func Init() {
 	}
 
 	// unmarshal into the tmp raw config
-	rawServiceConfig := &RawServiceConfig{}
+	rawServiceConfig := &configModels.RawServiceConfig{}
 	if err := yaml.Unmarshal(data, rawServiceConfig); err != nil {
 		log.Fatalf("unable to unmarshal config file %s\n%s", serviceConfigPath, err)
+	}
+
+	if err := GetValidator().Struct(rawServiceConfig); err != nil {
+		log.Fatalf("invalid config file %s\n%s", serviceConfigPath, err)
 	}
 
 	// unmarshal into the tmp raw config
@@ -30,10 +35,12 @@ func Init() {
 }
 
 type Config struct {
-	Service        ServiceConfig
-	ProductCatalog ProductCatalogConfig
-	OfferCatalog   OfferCatalogConfig
-	TradeshiftAPI  TradeshiftAPIConfig
+	Service          configModels.ServiceConfig
+	ProductCatalog   configModels.ProductCatalogConfig
+	OfferCatalog     configModels.OfferCatalogConfig
+	OfferItemCatalog configModels.OfferItemCatalogConfig
+	XLSXConfig       *configModels.XLSXConfig
+	TradeshiftAPI    configModels.TradeshiftAPIConfig
 }
 
 func Get() *Config {
@@ -42,14 +49,18 @@ func Get() *Config {
 	return result
 }
 
-func configFromRaw(rawService *RawServiceConfig) *Config {
-	c := rawService.ProductCatalogConfig
+func configFromRaw(rawService *configModels.RawServiceConfig) *Config {
+	p := rawService.ProductCatalogConfig
 	t := rawService.TradeshiftAPIConfig
 	o := rawService.OfferCatalogConfig
+	oi := rawService.OfferItemCatalogConfig
+	c := rawService.XLSXConfig
 	return &Config{
-		Service:        *rawService.ToConfig(),
-		ProductCatalog: *c.ToConfig(),
-		OfferCatalog:   *o.ToConfig(),
-		TradeshiftAPI:  *t.ToConfig(),
+		Service:          *rawService.ToConfig(),
+		ProductCatalog:   *p.ToConfig(),
+		OfferCatalog:     *o.ToConfig(),
+		OfferItemCatalog: *oi.ToConfig(),
+		XLSXConfig:       c.ToConfig(),
+		TradeshiftAPI:    *t.ToConfig(),
 	}
 }

@@ -2,19 +2,12 @@ package main
 
 import (
 	"log"
-	"ts/adapters"
 	"ts/config"
 	"ts/di"
-	"ts/externalAPI/rest"
-	"ts/externalAPI/tradeshiftAPI"
 	"ts/offerImport"
-	"ts/offerImport/importHandler"
+	"ts/offerItemImport"
+	"ts/prepareImport"
 	"ts/productImport"
-	"ts/productImport/mapping"
-	"ts/productImport/ontologyRead"
-	"ts/productImport/ontologyValidator"
-	"ts/productImport/reports"
-	"ts/productImport/tradeshiftImportHandler"
 )
 
 func main() {
@@ -30,21 +23,16 @@ func main() {
 }
 
 func start(
-	config *config.Config,
-	mapHandler mapping.MappingHandlerInterface,
-	rulesHandler *ontologyRead.RulesHandler,
-	handler adapters.HandlerInterface,
-	validator ontologyValidator.ValidatorInterface,
-	reports *reports.ReportsHandler,
-	fileManager *adapters.FileManager,
-	rest rest.RestClientInterface,
-	tradeshiftAPI *tradeshiftAPI.TradeshiftAPI,
-	tradeshiftProductHandler *tradeshiftImportHandler.TradeshiftHandler,
-	tradeshiftOfferHandler importHandler.ImportOfferInterface,
+	prepareImportHandler *prepareImport.Handler,
 	productImportHandler *productImport.ProductImportHandler,
 	offerImportHandler *offerImport.OfferImportHandler,
+	offerItemImportHandler offerItemImport.OfferItemImportHandlerInterface,
 ) {
-	offerImportHandler.Run()
-	productImportHandler.Run()
+	if prepareImportHandler != nil {
+		prepareImportHandler.Run()
+	}
+	offerImportHandler.RunCSV()
+	productImportHandler.RunCSV()
+	offerItemImportHandler.Run()
 	return
 }
